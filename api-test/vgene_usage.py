@@ -73,16 +73,16 @@ if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
     ssl._create_default_https_context = ssl._create_unverified_context
 
 # Set the base URL to use 
-#base_url = 'ipa1.ireceptor.org'
-#base_url = 'ipa2.ireceptor.org'
-#base_url = 'ipa3.ireceptor.org'
-base_url = 'ipa4.ireceptor.org'
-#base_url = 'vdjserver.org/ireceptor'
-#base_url = 'turnkey-test2.ireceptor.org'
+#base_url = 'https://ipa1.ireceptor.org'
+#base_url = 'https://ipa2.ireceptor.org'
+#base_url = 'https://ipa3.ireceptor.org'
+base_url = 'https://ipa4.ireceptor.org'
+#base_url = 'https://vdjserver.org/ireceptor'
+#base_url = 'http://turnkey-test2.ireceptor.org'
 
 # Select the API entry point to use, in this case /v2/samples
-sample_url = 'https://'+base_url+'/v2/samples'
-sequence_url = 'https://'+base_url+'/v2/sequences_summary'
+sample_url = base_url+'/v2/samples'
+sequence_url = base_url+'/v2/sequences_summary'
 
 # Set up the header for the post request.
 header_dict = {'accept': 'application/json',
