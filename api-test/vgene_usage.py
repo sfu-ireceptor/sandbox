@@ -2,6 +2,8 @@ import urllib.request, urllib.parse
 import json
 import os, ssl
 import time
+import numpy as np
+import matplotlib.pyplot as plt
 
 def getSequenceSummary(sequence_url, header_dict, query_dict={}):
     # Build the required JSON data for the post request. The user
@@ -74,27 +76,28 @@ if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
 #base_url = 'ipa1.ireceptor.org'
 #base_url = 'ipa2.ireceptor.org'
 #base_url = 'ipa3.ireceptor.org'
-#base_url = 'ipa4.ireceptor.org'
+base_url = 'ipa4.ireceptor.org'
 #base_url = 'vdjserver.org/ireceptor'
-base_url = 'turnkey-test2.ireceptor.org'
+#base_url = 'turnkey-test2.ireceptor.org'
 
 # Select the API entry point to use, in this case /v2/samples
-sample_url = 'http://'+base_url+'/v2/samples'
-sequence_url = 'http://'+base_url+'/v2/sequences_summary'
+sample_url = 'https://'+base_url+'/v2/samples'
+sequence_url = 'https://'+base_url+'/v2/sequences_summary'
 
 # Set up the header for the post request.
 header_dict = {'accept': 'application/json',
                'Content-Type': 'application/x-www-form-urlencoded'}
 
 # Junction AA length queries.
-query_key = 'junction_aa_length'
-query_values = range(40)
+#query_key = 'junction_aa_length'
+#query_values = range(40)
 
 # Possible v_call queries
-#query_key = 'v_call'
-#query_values = ['IGHV1','IGHV2','IGHV3','IGHV4','IGHV5','IGHV6','IGHV7','IGHV8']
-#query_values = ['IGHV1','IGHV2','IGHV3','IGHV4','IGHV5','IGHV6','IGHV7','IGHV8']
-#query_values = ['TRBV1','TRBV2','TRBV3','TRBV4','TRBV5','TRBV6','TRBV7','TRBV8']
+query_key = 'v_call'
+#query_values = ['IGHV1','IGHV2','IGHV3','IGHV4','IGHV5','IGHV6','IGHV7']
+#query_key = 'd_call'
+#query_values = ['IGHD1','IGHD2','IGHD3','IGHD4','IGHD5','IGHD6','IGHD7']
+query_values = ['TRBV1','TRBV2','TRBV3','TRBV4','TRBV5','TRBV6','TRBV7','TRBV8']
 
 sample_json = getSamples(sample_url, header_dict)
 sample_dict = dict()
@@ -120,12 +123,36 @@ for value in query_values:
         #result[sample['_id'], value] = pair
         print('   ' + query_key + ' ' + str(value) + ' = ' + str(sample['ir_filtered_sequence_count']))
 
+data = dict()
+grand_total = 0
 for sample in sample_json:
     value_dict = sample_dict[str(sample['_id'])] 
-    print('sample = ' + sample['sample_id'])
+    sequence_count = sample['ir_sequence_count']
+    print('\nsample = ' + sample['sample_id'] + ' (' + str(sequence_count) + ')')
+    total = 0
     for key, value in value_dict.items():
-        print(str(key) + ' = ' + str(value))
+        if key in data:
+            data.update({key:data[key]+value})
+        else:
+            data.update({key:value})
+        print(str(key) + ' = ' + str(value) + ' (' + '%.2f' % ((value/sequence_count)*100.0) + '%)')
+        total = total + value
+        grand_total = grand_total + value
+    print('sample = ' + sample['sample_id'] + ' (' + str(total) + ')')
         
+for key, value in data.items():
+    print(str(key) + ' = ' + str(value))
+print('grand total = ' + str(grand_total))
+
+plot_data = list(data.values())
+plot_names = list(data.keys())
+
+plt.rcParams.update({'figure.autolayout': True})
+fig, ax = plt.subplots()
+ax.barh(plot_names, plot_data)
+
+filename = query_key + '.png'
+fig.savefig(filename, transparent=False, dpi=80, bbox_inches="tight")
 
 
 # Get the samples from the URL, no query filters... In this case we iterated over all
