@@ -14,7 +14,7 @@ def getSequenceSummary(sequence_url, header_dict, query_dict={}):
     # Try to make the connection and get a response.
     try:
         response = urllib.request.urlopen(sequence_url, data=url_data)
-        url_response = response.read()
+        url_response = response.read().decode(response.headers.get_content_charset())
     except urllib.error.HTTPError as e:
         print('Error: Server could not fullfil the request')
         print('Error: Error code =', e.code)
@@ -47,7 +47,7 @@ def getSamples(sample_url, header_dict, query_dict={}):
     # empty JSON array.
     try:
         response = urllib.request.urlopen(sample_url, data=url_data)
-        url_response = response.read()
+        url_response = response.read().decode(response.headers.get_content_charset())
     except urllib.error.HTTPError as e:
         print('Error: Server could not fullfil the request')
         print('Error: Error code =', e.code)
@@ -59,6 +59,7 @@ def getSamples(sample_url, header_dict, query_dict={}):
         return json.loads('[]')
 
     # Convert the response to JSON so we can process it easily.
+    print(url_response)
     json_data = json.loads(url_response)
     # Return the JSON data
     return json_data
