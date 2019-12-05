@@ -41,6 +41,8 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
 
     # For each field in the schema, process it
     for field in schema.properties:
+
+        # and not feild_spec['$ref'] == "#/Ontology":
         # Create a new dictionary entry for the field.
         field_dict = dict()
         # Set up the basic field mappings for the stanard iReceptor fields.
@@ -49,12 +51,20 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
         field_dict['ir_subclass'] = block
         field_dict['ir_adc_api_query'] = airr_api_query + field
         field_dict['ir_adc_api_response'] = airr_api_response + field
-        # Add the field to the table.
-        table.append(field_dict)
 
         # Get the object that describes the specification for this field and
         # process it.
         field_spec = schema.spec(field)
+        append = True
+        if '$ref' in field_spec and not field_spec['$ref'] == "#/Ontology":
+            append = False
+        if 'type' in field_spec and field_spec['type'] == 'array':
+            if '$ref' in field_spec['items'] or 'allOf' in field_spec['items']:
+                append = False
+        if append:    
+            # Add the field to the table.
+            table.append(field_dict)
+
         for k,v in field_spec.items():
             # A field in the AIRR specification either has "normal" field specifications
             # such as type, description, and example or it has AIRR specific field
@@ -196,10 +206,10 @@ if __name__ == "__main__":
     # Recursively process the Repertoire block, as it is the key defining block that is
     # includive of everything at the Repertoire level. This will recursively process any
     # $ref entries in the YAML and built correct entries for each field.
-    labels, table = extractBlock('Repertoire', 'repertoire', '', '', labels, table)
+    labels, table = extractBlock('Repertoire', 'Repertoire', '', '', labels, table)
     # Recursively process the Rearrangement block, as it is the key defining block that is
     # includive of everything at the Rearangement level.
-    labels, table = extractBlock('Rearrangement', 'rearrangement', '', '', labels, table)
+    labels, table = extractBlock('Rearrangement', 'Rearrangement', '', '', labels, table)
 
     # Once we have our table built, we need to print it out.
     # First print out the header labels.
