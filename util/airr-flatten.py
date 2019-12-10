@@ -100,6 +100,10 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                     if v == "#/Ontology":
                         # If the $ref is to an Ontology, mark the type as ontology.
                         field_dict["airr_type"] = "ontology"
+                        # We want to add on a .value qualifier to the ADC API variable names as
+                        # we return the value component of the ontology in the API.
+                        field_dict['ir_adc_api_query'] = field_dict['ir_adc_api_query'] + '.value'
+                        field_dict['ir_adc_api_response'] = field_dict['ir_adc_api_response'] + '.value'
                     else:
                         # If the $ref is to another object, then handle that object by
                         # recursion. We get the object to use from the name.
@@ -172,6 +176,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                     if not label in labels:
                         labels.append(label)
                     # Strip off any whitespace if it is a string...
+                    value = v
                     if isinstance(v, str):
                         value = v.strip()
                     field_dict[label] = value
