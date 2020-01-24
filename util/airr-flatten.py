@@ -1,4 +1,5 @@
 
+import collections
 import argparse
 import yaml
 import sys
@@ -6,9 +7,9 @@ import airr
 from airr.schema import Schema
 
 
-# Recursive function to extract fields from a AIRR YAML specification into a flat table.
-# The function processes all $ref objects recursively to build up a table of entries with
-# all fields from all sub-objects in the YAML definition.
+# Recursive function to extract fields from a AIRR YAML specification into a
+# flat table. The function processes all $ref objects recursively to build up
+# a table of entries with all fields from all sub-objects in the YAML definition.
 #
 # Parameters:
 # - block: The schema block to extract.
@@ -22,17 +23,17 @@ from airr.schema import Schema
 #   airr_api_query except for those objects that are arrays they are denoted with a
 #   .0. string (e.g. sample.0.sample_id denotes that sample_id is part of the sample
 #   array response.
-# - labels: An array of labels that have been found thus far in the query. When a new label
-#   is found it should be added to the labels array.
-# - table: An array of dictionaries, each row in the table a field in the spec, and
+# - labels: An array of labels that have been found thus far in the query. When
+#   a new label is found it should be added to the labels array.
+# - table: An array of dictionaries, each row in the table is a field in the spec, and
 #   each dictionary a key value pair where the labels are the keys and the values
 #   are the field values for those labels. 
 #
 # Returns:
-# - labels: A new set of labels based on the labels provided plus any added by the current
-#   object.
-# - table: An array of dictionaries, based on the table provided but with new rows added
-#   as per the fields that were found in the current object.
+# - labels: A new set of labels based on the labels provided plus any
+# added by the current object.
+# - table: An array of dictionaries, based on the table provided but with
+# new rows added as per the fields that were found in the current object.
 
 def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, table):
 
@@ -63,10 +64,10 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                 append = False
         if append:    
             # Add the field to the table.
-            table.append(field_dict)
+            table[field] = field_dict
 
         for k,v in field_spec.items():
-            # A field in the AIRR specification either has "normal" field specifications
+            # A field in the AIRR specification either has "normal" field specs
             # such as type, description, and example or it has AIRR specific field
             # specifications in a custom x-airr object. This custom object has things
             # about the MiAIRR standard and the ADC API. We have to handle both.
@@ -79,14 +80,14 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                     if xairr_k == 'format' or xairr_k == 'ontology':
                        continue
                     else:
-                        # If it is a string value, we want to clean it up, in case there
-                        # is some extra white space...
+                        # If it is a string value, we want to clean it up, in case
+                        # there is some extra white space...
                         value = xairr_v
                         if isinstance(value, str):
                             value = value.strip()
-                        # Create a new label for this field, as we want to keep track of
-                        # this as a column in our table. We prefic all of the AIRR columns
-                        # with airr_ to differentiate them.
+                        # Create a new label for this field, as we want to keep track
+                        # of this as a column in our table. We prefic all of the AIRR
+                        # columns with airr_ to differentiate them.
                         label = 'airr_'+xairr_k
                         # Only add it if it isn't in the labels already.
                         if not label in labels:
@@ -100,10 +101,24 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                     if v == "#/Ontology":
                         # If the $ref is to an Ontology, mark the type as ontology.
                         field_dict["airr_type"] = "ontology"
-                        # We want to add on a .value qualifier to the ADC API variable names as
-                        # we return the value component of the ontology in the API.
+                        # We want to add on a .value qualifier to the ADC API variable
+                        # names as we return the value component of the ontology in
+                        # the API.
                         field_dict['ir_adc_api_query'] = field_dict['ir_adc_api_query'] + '.value'
                         field_dict['ir_adc_api_response'] = field_dict['ir_adc_api_response'] + '.value'
+                        # For ontology fields, we need to create a second entry for
+                        # the id component of the ontology.
+                        # Create a new dictionary entry for the id field.
+                        id_dict = dict()
+                        # Set up the basic field mappings for the iReceptor fields.
+                        id_dict['airr'] = field + "_id"
+                        id_dict['ir_class'] = airr_class
+                        id_dict['ir_subclass'] = block
+                        # Create the .id qualifier for the API names.
+                        id_dict['ir_adc_api_query'] = airr_api_query + field + ".id"
+                        id_dict['ir_adc_api_response'] = airr_api_response + field + ".id"
+                        id_dict['airr_type'] = "string"
+                        table[id_dict['airr']] = id_dict
                     else:
                         # If the $ref is to another object, then handle that object by
                         # recursion. We get the object to use from the name.
@@ -113,9 +128,9 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                         # that we are processing a new object and that the API field 
                         # references need to reference the hierarchy correctly. 
                         labels, table = extractBlock(new_schema_name, airr_class,
-                                                     airr_api_query+field_dict['airr']+'.',
-                                                     airr_api_response+field_dict['airr']+'.',
-                                                     labels, table)
+                                             airr_api_query+field_dict['airr']+'.',
+                                             airr_api_response+field_dict['airr']+'.',
+                                             labels, table)
                 elif k == 'items':
                     # Handle a list of items, meaning we have an array. In the AIRR
                     # specification we can have an array of $ref objects or an
@@ -126,11 +141,12 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                             # The item is a $ref, get the sub-object and process it.
                             ref_array = item_value.split("/")
                             new_schema_name = ref_array[1]
-                            # Note the API response has a .0. in it because this is an array.
+                            # Note the API response has a .0. in it because this
+                            # is an array.
                             labels, table = extractBlock(new_schema_name, airr_class,
-                                                         airr_api_query+field_dict['airr']+'.',
-                                                         airr_api_response+field_dict['airr']+'.0.',
-                                                         labels, table)
+                                            airr_api_query+field_dict['airr']+'.',
+                                            airr_api_response+field_dict['airr']+'.0.',
+                                            labels, table)
                         elif item_key == 'allOf':
                             # The item is an allOf so process each element.
                             for ref_dict in item_value:
@@ -138,11 +154,13 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                                 if '$ref' in ref_dict:
                                     ref_array = ref_dict['$ref'].split("/")
                                     new_schema_name = ref_array[1]
-                                    # Note the API response has a .0. in it because this is an array.
-                                    labels, table = extractBlock(new_schema_name, airr_class,
-                                                                 airr_api_query+field_dict['airr']+'.',
-                                                                 airr_api_response+field_dict['airr']+'.0.',
-                                                                 labels, table)
+                                    # Note the API response has a .0. in it because
+                                    # this is an array.
+                                    labels, table = extractBlock(new_schema_name,
+                                               airr_class,
+                                               airr_api_query+field_dict['airr']+'.',
+                                               airr_api_response+field_dict['airr']+'.0.',
+                                               labels, table)
                 elif k == 'example':
                     # Processing an example - some special cases...
                     # First add it to the labels if we don't already have it.
@@ -204,35 +222,70 @@ if __name__ == "__main__":
 
     # Create an empty table. This gets populated by the traversal of the YAML block
     # that is processed.
-    table = []
-    # Create an initial set of lables for the mapping file. These are mappings that don't
-    # exist in the YAML file but are needed in the mapping file.
-    labels = ['airr', 'ir_class', 'ir_subclass', 'ir_adc_api_query', 'ir_adc_api_response']
-    # Recursively process the Repertoire block, as it is the key defining block that is
-    # includive of everything at the Repertoire level. This will recursively process any
-    # $ref entries in the YAML and built correct entries for each field.
-    labels, table = extractBlock('Repertoire', 'Repertoire', '', '', labels, table)
-    # Recursively process the Rearrangement block, as it is the key defining block that is
-    # includive of everything at the Rearangement level.
-    labels, table = extractBlock('Rearrangement', 'Rearrangement', '', '', labels, table)
+    table = collections.OrderedDict()
+    # Create an initial set of lables for the mapping file. These are mappings
+    # that don't exist in the YAML file but are needed in the mapping file.
+    labels = ['airr', 'ir_class', 'ir_subclass',
+              'ir_adc_api_query', 'ir_adc_api_response']
+    initial_labels = ['airr', 'ir_class', 'ir_subclass',
+                      'ir_adc_api_query', 'ir_adc_api_response']
+    # Recursively process the Repertoire block, as it is the key defining block
+    # that is # includive of everything at the Repertoire level. This will
+    # recursively process any $ref entries in the YAML and built correct
+    # entries for each field.
+    labels, table = extractBlock('Repertoire', 'Repertoire',
+                                 '', '', labels, table)
+    # Recursively process the Rearrangement block, as it is the key defining block
+    # that is includive of everything at the Rearangement level.
+    labels, table = extractBlock('Rearrangement', 'Rearrangement',
+                                 '', '', labels, table)
+
+    # We need to do some special processing for our ontologies. The _id field of 
+    # the ontology does not have an entry in the spec, so we need to copy a bunch
+    # of values from the _value field to the _id field.
+    for field, field_dict in table.items():
+        if field_dict['airr_type'] == 'ontology':
+            # Get the field name and generate the ontology id field name
+            field = field_dict['airr']
+            id_field = field + "_id"
+            # We want this field to be type string not ontology.
+            field_dict['airr_type'] = 'string'
+            # If the id field is in the table, update the id fields column values
+            if id_field in table:
+                # Get the dictionary for the id_field
+                id_dict = table[id_field]
+                # For each column in the value field, copy it to the id field. Note
+                # we do this for all of the generated fields from the spec, not the
+                # special fields that are generated.
+                for column in field_dict:
+                    # Initial labels contains the special fields, we don't want
+                    # to overwrite these.
+                    if not column in initial_labels:
+                        id_dict[column] = field_dict[column]
+                # We want the type of the id field to be string.
+                id_dict['airr_type'] = 'string'
+                # Finally, we store the updated dict in the table.
+                table[id_field] = id_dict
 
     # Once we have our table built, we need to print it out.
+
     # First print out the header labels.
     for label in labels:
         print(label,end='\t')
     print("")
 
     # Now print out each row.
-    for row in table:
-        # For each row, because it is a TSV file, we have to do things in the same order.
-        # So we iterated over the labels and print out the information if we have it for
-        # this row, otherwise print out an empty column (a simple tab character).
+    for field, field_dict in table.items():
+        # For each row, because it is a TSV file, we have to do things in the
+        # same order. So we iterated over the labels and print out the information
+        # if we have it for this row, otherwise print out an empty column (a
+        # simple tab character).
         for label in labels:
-            # If the label is in the row, print the info, otherwise print an empty tab column.
-            # The end of our print isn't a new line, it is a tab character, so we stay on
-            # the same row.
-            if label in row:
-                print(row[label], end='\t')
+            # If the label is in the row, print the info, otherwise print an
+            # empty tab column. The end of our print isn't a new line, it is a
+            # tab character, so we stay on the same row.
+            if label in field_dict:
+                print(field_dict[label], end='\t')
             else:
                 print("", end='\t')
         # End of row, print a new line character.
