@@ -52,6 +52,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
         field_dict['ir_subclass'] = block
         field_dict['ir_adc_api_query'] = airr_api_query + field
         field_dict['ir_adc_api_response'] = airr_api_response + field
+        field_tag = field+airr_class
 
         # Get the object that describes the specification for this field and
         # process it.
@@ -64,7 +65,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                 append = False
         if append:    
             # Add the field to the table.
-            table[field] = field_dict
+            table[field_tag] = field_dict
 
         for k,v in field_spec.items():
             # A field in the AIRR specification either has "normal" field specs
@@ -118,7 +119,8 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                         id_dict['ir_adc_api_query'] = airr_api_query + field + ".id"
                         id_dict['ir_adc_api_response'] = airr_api_response + field + ".id"
                         id_dict['airr_type'] = "string"
-                        table[id_dict['airr']] = id_dict
+                        id_field_tag = id_dict['airr']+airr_class
+                        table[id_field_tag] = id_dict
                     else:
                         # If the $ref is to another object, then handle that object by
                         # recursion. We get the object to use from the name.
@@ -253,7 +255,8 @@ if __name__ == "__main__":
             # If the id field is in the table, update the id fields column values
             if id_field in table:
                 # Get the dictionary for the id_field
-                id_dict = table[id_field]
+                if_field_tag = id_field + field_dict['ir_class']
+                id_dict = table[if_field_tag]
                 # For each column in the value field, copy it to the id field. Note
                 # we do this for all of the generated fields from the spec, not the
                 # special fields that are generated.
@@ -265,7 +268,7 @@ if __name__ == "__main__":
                 # We want the type of the id field to be string.
                 id_dict['airr_type'] = 'string'
                 # Finally, we store the updated dict in the table.
-                table[id_field] = id_dict
+                table[id_field_tag] = id_dict
 
     # Once we have our table built, we need to print it out.
 
