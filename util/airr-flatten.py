@@ -250,13 +250,15 @@ if __name__ == "__main__":
             # Get the field name and generate the ontology id field name
             field = field_dict['airr']
             id_field = field + "_id"
+            id_field_tag = id_field + field_dict['ir_class']
+            #print("Ontology term %s, %s"%(field, id_field))
             # We want this field to be type string not ontology.
             field_dict['airr_type'] = 'string'
             # If the id field is in the table, update the id fields column values
-            if id_field in table:
+            if id_field_tag in table:
+                #print("Ontology ID field %s"%(id_field))
                 # Get the dictionary for the id_field
-                if_field_tag = id_field + field_dict['ir_class']
-                id_dict = table[if_field_tag]
+                id_dict = table[id_field_tag]
                 # For each column in the value field, copy it to the id field. Note
                 # we do this for all of the generated fields from the spec, not the
                 # special fields that are generated.
@@ -264,7 +266,10 @@ if __name__ == "__main__":
                     # Initial labels contains the special fields, we don't want
                     # to overwrite these.
                     if not column in initial_labels:
+                        #print("Overwriting Ontology ID field %s[%s]"%(id_field, column))
                         id_dict[column] = field_dict[column]
+                        if column == "airr_description" or column == "airr_name":
+                            id_dict[column] = id_dict[column] + " (Ontology ID)"
                 # We want the type of the id field to be string.
                 id_dict['airr_type'] = 'string'
                 # Finally, we store the updated dict in the table.
