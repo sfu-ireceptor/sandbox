@@ -42,8 +42,6 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
 
     # For each field in the schema, process it
     for field in schema.properties:
-
-        # and not feild_spec['$ref'] == "#/Ontology":
         # Create a new dictionary entry for the field.
         field_dict = dict()
         # Set up the basic field mappings for the stanard iReceptor fields.
@@ -52,6 +50,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
         field_dict['ir_subclass'] = block
         field_dict['ir_adc_api_query'] = airr_api_query + field
         field_dict['ir_adc_api_response'] = airr_api_response + field
+        field_dict['airr_is_array'] = False
         field_tag = field+airr_class
 
         # Get the object that describes the specification for this field and
@@ -63,6 +62,8 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
         if 'type' in field_spec and field_spec['type'] == 'array':
             if '$ref' in field_spec['items'] or 'allOf' in field_spec['items']:
                 append = False
+            else:
+                field_dict['airr_is_array'] = True
         if append:    
             # Add the field to the table.
             table[field_tag] = field_dict
@@ -118,6 +119,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                         # Create the .id qualifier for the API names.
                         id_dict['ir_adc_api_query'] = airr_api_query + field + ".id"
                         id_dict['ir_adc_api_response'] = airr_api_response + field + ".id"
+                        id_dict['airr_is_array'] = False
                         id_dict['airr_type'] = "string"
                         id_field_tag = id_dict['airr']+airr_class
                         table[id_field_tag] = id_dict
@@ -163,6 +165,19 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                                                airr_api_query+field_dict['airr']+'.',
                                                airr_api_response+field_dict['airr']+'.0.',
                                                labels, table)
+                        elif item_key == 'type':
+                            # This is the special ase of handling a "type" for an "array". 
+                            # The only arrays that have a type are array fields. If this
+                            # is the case, we want to set the type of the array field.
+                            # First add it to the labels if we don't already have it.
+                            label = 'airr_type'
+                            if not label in labels:
+                                labels.append(label)
+                            # Strip off any whitespace if it is a string...
+                            value = item_value 
+                            if isinstance(v, str):
+                                value = v.strip()
+                            field_dict[label] = value
                 elif k == 'example':
                     # Processing an example - some special cases...
                     # First add it to the labels if we don't already have it.
@@ -228,9 +243,9 @@ if __name__ == "__main__":
     # Create an initial set of lables for the mapping file. These are mappings
     # that don't exist in the YAML file but are needed in the mapping file.
     labels = ['airr', 'ir_class', 'ir_subclass',
-              'ir_adc_api_query', 'ir_adc_api_response']
+              'ir_adc_api_query', 'ir_adc_api_response', 'airr_is_array']
     initial_labels = ['airr', 'ir_class', 'ir_subclass',
-                      'ir_adc_api_query', 'ir_adc_api_response']
+                      'ir_adc_api_query', 'ir_adc_api_response', 'airr_is_array']
     # Recursively process the Repertoire block, as it is the key defining block
     # that is # includive of everything at the Repertoire level. This will
     # recursively process any $ref entries in the YAML and built correct
