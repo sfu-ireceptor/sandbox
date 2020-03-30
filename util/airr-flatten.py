@@ -40,12 +40,21 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
     # Use the AIRR library to get an AIRR Schema block for the current block.
     schema = Schema(block)
 
+    # Get the required fields for this schema object
+    required_fields = schema.required
+
     # For each field in the schema, process it
     for field in schema.properties:
         # Create a new dictionary entry for the field.
         field_dict = dict()
         # Set up the basic field mappings for the stanard iReceptor fields.
         field_dict['airr'] = field
+        field_dict['airr_spec'] = True
+        # If the field is required, set the attribute.
+        if field in required_fields:
+            field_dict['airr_required'] = True
+        else:
+            field_dict['airr_required'] = False
         field_dict['ir_class'] = airr_class
         field_dict['ir_subclass'] = block
         field_dict['ir_adc_api_query'] = airr_api_query + field
@@ -78,9 +87,33 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
             if k == 'x-airr':
                 # Iterated over the x-airr schema objects.
                 for xairr_k, xairr_v in v.items():
-                    # If it is a format or ontology object, we don't record anything.
-                    if xairr_k == 'format' or xairr_k == 'ontology':
+                    # If it is an ontology object, we don't record anything.
+                    if xairr_k == 'ontology':
                        continue
+                    # The miairr tag is a controlled vocabulary of "essential",
+                    # "important", or "defined". It controls the setting of two
+                    # columns in the mapping, airr_miairr and airr_required.
+                    elif xairr_k == 'miairr':
+                        # The miairr tag is a controlled vocabulary of "essential",
+                        # "important", or "defined". If this field exists and is 
+                        # set to one of these, then the airr_miairr label should be
+                        # set to True as it is a MiAIRR field. If it isn't one of these
+                        # values then it is an error.
+                        if xairr_v in ['essential', 'important', 'defined']:
+                            label = 'airr_miairr'
+                            if not label in labels:
+                                labels.append(label)
+                            # Add the value of this field to the column.
+                            field_dict[label] = True
+
+                            # The airr_required field should be True for all MiAIRR terms.
+                            #label = 'airr_required'
+                            #if not label in labels:
+                            #    labels.append(label)
+                            ## Add the value of this field to the column.
+                            #field_dict[label] = True
+                        else:
+                            print("Warning: Invalid x_airr:miairr field %s"%(xairr_v))
                     else:
                         # If it is a string value, we want to clean it up, in case
                         # there is some extra white space...
@@ -242,7 +275,7 @@ if __name__ == "__main__":
     table = collections.OrderedDict()
     # Create an initial set of lables for the mapping file. These are mappings
     # that don't exist in the YAML file but are needed in the mapping file.
-    labels = ['airr', 'ir_class', 'ir_subclass',
+    labels = ['airr', 'airr_spec', 'airr_required', 'ir_class', 'ir_subclass',
               'ir_adc_api_query', 'ir_adc_api_response', 'airr_is_array']
     initial_labels = ['airr', 'ir_class', 'ir_subclass',
                       'ir_adc_api_query', 'ir_adc_api_response', 'airr_is_array']
@@ -287,6 +320,8 @@ if __name__ == "__main__":
                             id_dict[column] = id_dict[column] + " (Ontology ID)"
                 # We want the type of the id field to be string.
                 id_dict['airr_type'] = 'string'
+                # We want the airr_spec field to be TRUE.
+                id_dict['airr_spec'] = True
                 # Finally, we store the updated dict in the table.
                 table[id_field_tag] = id_dict
 
