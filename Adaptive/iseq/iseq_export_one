@@ -1,0 +1,29 @@
+#!/bin/sh
+
+SCRIPTDIR=`dirname $0`
+
+ISEQ_TAG=$1
+WORKSPACE=$2
+PROJECT=$3
+SAMPLE_NAME=$4
+
+if [[ $# == 4 ]]; then
+	TARGETDIR="."
+else
+	TARGETDIR=$5
+	mkdir -p $TARGETDIR
+fi
+
+echo Fetching sequences for $SAMPLE_NAME
+
+PARTITION_QUERY="select IdToPartitionKey(sequence_result_id) from samples where sample_name = '$SAMPLE_NAME'"
+
+PARTITION_KEY=`echo $PARTITION_QUERY | $SCRIPTDIR/iseq $ISEQ_TAG "$WORKSPACE" "$PROJECT" | tail -1`
+
+BASE_QUERY=`cat $SCRIPTDIR/export_rearrangements.sql | sed -e "s/SAMPLE_NAME_TOKEN/$SAMPLE_NAME/g"`
+
+FULL_QUERY="$BASE_QUERY and partition_key = $PARTITION_KEY"
+
+echo $FULL_QUERY | $SCRIPTDIR/iseq $ISEQ_TAG "$WORKSPACE" "$PROJECT" > "$TARGETDIR/$SAMPLE_NAME.tsv"
+
+

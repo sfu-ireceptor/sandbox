@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# script version number to help server side debugging later
+VERSION=1
+
+# Find the entry in ~/.iseq for the given tag (each line is tag:user:pass:url)
+
+CFG_USER=""
+CFG_PASSWORD=""
+CFG_URL=""
+
+while IFS=':' read -r tag user pass url; do
+	if [[ "$1" == $tag ]]; then
+		CFG_USER=$user
+		CFG_PASSWORD=$pass
+		CFG_URL=$url
+	fi
+done < ~/.iseq
+
+
+if [ "$CFG_USER" == "" ]; then
+	echo "$1 not found in ~/.iseq"
+	echo ""
+	echo "Usage: iseq TAG WORKSPACE PROJECT [QUERY]"
+	echo ""
+	echo "    TAG is a reference to a line in ~/.iseq, each line is tag:user:pass:url for an Analyzer instance"
+	echo "    WORKSPACE is a workspace UUID or name"
+	echo "    PROJECT is a project UUID or name within WORKSPACE"
+	echo "    QUERY is either query text (probably want single quotes) or leave blank to read from stdin"
+
+	exit
+fi
+
+CFG_WORKSPACE=$2
+CFG_PROJECT=$3
+CFG_WORKSPACE_ENCODED=${CFG_WORKSPACE// /%20}
+CFG_PROJECT_ENCODED=${CFG_PROJECT// /%20}
+
+# query
+
+if [[ $# == 3 ]]; then
+	QUERY=$(cat -)
+else
+	QUERY=$4
+fi
+
+TEMP_FILE=$(mktemp iseq.XXXXXX)
+echo "$QUERY" > $TEMP_FILE
+QUERY=@$TEMP_FILE
+
+# fetch the cookie
+
+TEST_CXN_URL=${CFG_URL}/api/queryProject?separator=%09\&workspace=${CFG_WORKSPACE_ENCODED}\&project=${CFG_PROJECT_ENCODED}\&scriptVersion=${VERSION}
+QUERY_URL=${CFG_URL}/api/iseqQueryProjectAsync?separator=%09\&workspace=${CFG_WORKSPACE_ENCODED}\&project=${CFG_PROJECT_ENCODED}\&scriptVersion=${VERSION}
+
+CXN_STATUS_CODE=`curl --output /dev/null --write-out "%{http_code}" -su ${CFG_USER}:${CFG_PASSWORD} -d "select '1'" -H "Content-Type: text/plain" -H "Csrf-Token: nocheck" ${TEST_CXN_URL}`
+COOKIE=`curl -s -u ${CFG_USER}:${CFG_PASSWORD} -d $QUERY -H "Content-Type: text/plain" -H "Csrf-Token: nocheck" ${QUERY_URL}`
+
+# if failure, print out response of query call
+if [[ $CXN_STATUS_CODE -eq 400 ]] || [[ $CXN_STATUS_CODE -eq 401 ]]  || [[ $CXN_STATUS_CODE -eq 403 ]]  || [[ $CXN_STATUS_CODE -eq 404 ]] || [[ $CXN_STATUS_CODE -eq 500 ]] ; then
+  echo "API call failed, please check login credentials."
+fi
+
+# if success, continue on
+if [[ $CXN_STATUS_CODE -eq 200 ]] || [[ $CXN_STATUS_CODE -eq 202 ]] ; then
+  # and wait for results
+
+  RESULTS_URL=${CFG_URL}/api/getResult/${COOKIE}?workspace=${CFG_WORKSPACE_ENCODED}\&project=${CFG_PROJECT_ENCODED}
+
+  HAVE_RESULTS=0
+
+  while [[ "$HAVE_RESULTS" == "0" ]]; do
+
+    IFS=''
+    while read line
+    do
+      if [[ "$line" != "FALSE" ]]; then
+        HAVE_RESULTS=1
+        echo $line
+      fi
+    done <<< "$(curl -s -H 'Accept-Encoding: gzip' -u ${CFG_USER}:${CFG_PASSWORD} ${RESULTS_URL})"
+
+  done
+fi
+
+# clean up
+
+if [[ "$TEMP_FILE" != "" ]]; then
+	rm $TEMP_FILE
+fi
+

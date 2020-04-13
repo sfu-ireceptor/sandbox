@@ -1,0 +1,37 @@
+#!/bin/sh
+
+SCRIPTDIR=`dirname $0`
+
+ISEQ_TAG=$1
+WORKSPACE=$2
+PROJECT=$3
+PROJECT_FILESYSTEM=${PROJECT// /_}
+
+TARGETDIR=./$WORKSPACE
+TARGETDIR+=-$PROJECT_FILESYSTEM
+mkdir -p "$TARGETDIR"
+
+# sample overview
+
+echo Fetching sample summary information
+$SCRIPTDIR/iseq $ISEQ_TAG "$WORKSPACE" "$PROJECT" < $SCRIPTDIR/export_samples.sql > "$TARGETDIR/samples.tsv"
+
+# rearrangements
+
+cat "$TARGETDIR/samples.tsv" | while read line
+do
+	IFS=$'\t'
+	read -ra SAMPLE_FIELDS <<< "$line"
+	SAMPLE_NAME=${SAMPLE_FIELDS[0]}
+
+	if [[ ( $SAMPLE_NAME != "sample_name" ) && ($SAMPLE_NAME != "") ]]
+	then
+		if [[ -e "$TARGETDIR/$SAMPLE_NAME.tsv" ]] 
+		then
+			echo "$SAMPLE_NAME already exists in target directory"
+		else
+			$SCRIPTDIR/iseq_export_one $ISEQ_TAG "$WORKSPACE" "$PROJECT" $SAMPLE_NAME "$TARGETDIR"
+		fi
+	fi
+done
+
