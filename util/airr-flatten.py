@@ -139,8 +139,8 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                         # We want to add on a .value qualifier to the ADC API variable
                         # names as we return the value component of the ontology in
                         # the API.
-                        field_dict['ir_adc_api_query'] = field_dict['ir_adc_api_query'] + '.value'
-                        field_dict['ir_adc_api_response'] = field_dict['ir_adc_api_response'] + '.value'
+                        field_dict['ir_adc_api_query'] = field_dict['ir_adc_api_query'] + '.label'
+                        field_dict['ir_adc_api_response'] = field_dict['ir_adc_api_response'] + '.label'
                         # For ontology fields, we need to create a second entry for
                         # the id component of the ontology.
                         # Create a new dictionary entry for the id field.
