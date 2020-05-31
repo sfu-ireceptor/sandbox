@@ -220,7 +220,7 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
                     if isinstance(v,dict):
                         # If it is a dict() then we have an ontology term, process
                         # the ID and value for the ontology.
-                        field_dict[label] = str(v['id']) + ', ' + v['value']
+                        field_dict[label] = str(v['id']) + ', ' + v['label']
                     elif not isinstance(v, str):
                         # If it isn't a string, store it
                         field_dict[label] = v
@@ -316,7 +316,8 @@ if __name__ == "__main__":
                     if not column in initial_labels:
                         #print("Overwriting Ontology ID field %s[%s]"%(id_field, column))
                         id_dict[column] = field_dict[column]
-                        if column == "airr_description" or column == "airr_name":
+                        # We want to add some info to the ID description/name/title fields.
+                        if column == "airr_description" or column == "airr_name" or column == "airr_title":
                             id_dict[column] = id_dict[column] + " (Ontology ID)"
                 # We want the type of the id field to be string.
                 id_dict['airr_type'] = 'string'
