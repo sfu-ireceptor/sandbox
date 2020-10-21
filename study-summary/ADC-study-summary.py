@@ -151,10 +151,19 @@ def studySummary(url, study_file, study_header, verbose):
             forward_pcr_primer_target_location = []
             reverse_pcr_primer_target_location = []
             template_class = []
+            library_generation_method = []
             subject_list = []
             sample_list = []
-
+            data_processing_protocols = []
+            software_versions = []
+            germline_database = []
+            paired_reads_assembly = []
+            quality_thresholds = []
+            primer_match_cutoffs = []
+            collapsing_method = []
+            
             for repertoire in repertoire_array:
+                repertoire_id = repertoire['repertoire_id']
                 study_json = repertoire['study']
                 subject_json = repertoire['subject']
 
@@ -176,6 +185,8 @@ def studySummary(url, study_file, study_header, verbose):
                         not sample_json['cell_subset']['label'] in cell_subset):
                         cell_subset.append(sample_json['cell_subset']['label'])
 
+                    if not sample_json['library_generation_method'] in library_generation_method:
+                        library_generation_method.append(sample_json['library_generation_method'])
                     if not sample_json['template_class'] in template_class:
                         template_class.append(sample_json['template_class'])
                     if not sample_json['sample_id'] in sample_list:
@@ -190,17 +201,40 @@ def studySummary(url, study_file, study_header, verbose):
                     if not pcr_target['reverse_pcr_primer_target_location'] in reverse_pcr_primer_target_location:
                         reverse_pcr_primer_target_location.append(pcr_target['reverse_pcr_primer_target_location'])
 
+                # Handle data_processing (we assume one)
+                data_processing = repertoire['data_processing'][0]
+                if total == 0:
+                    data_processing_protocols = data_processing['data_processing_protocols']  
+                    software_versions = data_processing['software_versions']  
+                    germline_database = data_processing['germline_database']  
+                    paired_reads_assembly = data_processing['paired_reads_assembly']  
+                    quality_thresholds = data_processing['quality_thresholds']  
+                    primer_match_cutoffs = data_processing['primer_match_cutoffs']  
+                    collapsing_method = data_processing['collapsing_method']  
+
+
                 total = total + 1
                 
             num_subjects = len(subject_list)
-            print("%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%
+            print("%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%
                      (study_row[study_header], keywords_study,
                       cell_subset, pcr_target_locus, num_subjects,
-                      num_responses, "null",
+                      num_responses, template_class,
+                      library_generation_method,
+                      "null",
                       forward_pcr_primer_target_location,
                       reverse_pcr_primer_target_location,
-                      "Bulk", template_class, "null",
-                      pub_ids, study_id, sequencing_platform))
+                      "Bulk",
+                      pub_ids, study_id, sequencing_platform,
+                      "null",
+                      query_url, repertoire_id,
+                      "null",
+                      "null",
+                      data_processing_protocols,
+                      "null",
+                      software_versions, germline_database, paired_reads_assembly,
+                      quality_thresholds, primer_match_cutoffs, collapsing_method
+                      ))
         else:
             print("Error: Could not find study %s in %s"%
                   (study_row[study_header],query_url))
