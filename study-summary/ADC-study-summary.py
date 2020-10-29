@@ -169,48 +169,60 @@ def studySummary(url, study_file, study_header, verbose):
 
                 # Handle the field where there is one per study
                 if total == 0:
-                    study_id = study_json['study_id']
-                    pub_ids = study_json['pub_ids']
+                    if 'study_id' in study_json:
+                        study_id = study_json['study_id']
+                    if 'pub_ids' in study_json:
+                        pub_ids = study_json['pub_ids']
 
-                if not study_json['keywords_study'] in keywords_study:
+                if 'keywords_study' in study_json and not study_json['keywords_study'] in keywords_study:
                     keywords_study.append(study_json['keywords_study'])
-                if not subject_json['subject_id'] in subject_list:
+                if 'subject_id' in study_json and not subject_json['subject_id'] in subject_list:
                     subject_list.append(subject_json['subject_id'])
 
                 # For each sample...
                 for sample_json in repertoire['sample']:
                     if total == 0:
-                        sequencing_platform = sample_json['sequencing_platform']
-                    if (not sample_json['cell_subset']['label'] is None and
+                        if 'sequencing_platform' in sample_json:
+                            sequencing_platform = sample_json['sequencing_platform']
+                    if ('cell_subset' in sample_json and 
+                        'label' in sample_json['cell_subset'] and
+                        not sample_json['cell_subset']['label'] is None and
                         not sample_json['cell_subset']['label'] in cell_subset):
                         cell_subset.append(sample_json['cell_subset']['label'])
 
-                    if not sample_json['library_generation_method'] in library_generation_method:
+                    if 'library_generation_method' in sample_json and not sample_json['library_generation_method'] in library_generation_method:
                         library_generation_method.append(sample_json['library_generation_method'])
-                    if not sample_json['template_class'] in template_class:
+                    if 'template_class' in sample_json and not sample_json['template_class'] in template_class:
                         template_class.append(sample_json['template_class'])
-                    if not sample_json['sample_id'] in sample_list:
+                    if 'sample_id' in sample_json and not sample_json['sample_id'] in sample_list:
                         sample_list.append(sample_json['sample_id'])
 
                     # Handle the pcr_target (we assume one and only one)
                     pcr_target = sample_json['pcr_target'][0]
-                    if not pcr_target['pcr_target_locus'] in pcr_target_locus:
+                    if 'pcr_target_locus' in pcr_target and not pcr_target['pcr_target_locus'] in pcr_target_locus:
                         pcr_target_locus.append(pcr_target['pcr_target_locus'])
-                    if not pcr_target['forward_pcr_primer_target_location'] in forward_pcr_primer_target_location:
+                    if 'forward_pcr_primer_target_location' in pcr_target and not pcr_target['forward_pcr_primer_target_location'] in forward_pcr_primer_target_location:
                         forward_pcr_primer_target_location.append(pcr_target['forward_pcr_primer_target_location'])
-                    if not pcr_target['reverse_pcr_primer_target_location'] in reverse_pcr_primer_target_location:
+                    if 'reverse_pcr_primer_target_location' in pcr_target and not pcr_target['reverse_pcr_primer_target_location'] in reverse_pcr_primer_target_location:
                         reverse_pcr_primer_target_location.append(pcr_target['reverse_pcr_primer_target_location'])
 
                 # Handle data_processing (we assume one)
                 data_processing = repertoire['data_processing'][0]
                 if total == 0:
-                    data_processing_protocols = data_processing['data_processing_protocols']  
-                    software_versions = data_processing['software_versions']  
-                    germline_database = data_processing['germline_database']  
-                    paired_reads_assembly = data_processing['paired_reads_assembly']  
-                    quality_thresholds = data_processing['quality_thresholds']  
-                    primer_match_cutoffs = data_processing['primer_match_cutoffs']  
-                    collapsing_method = data_processing['collapsing_method']  
+                    if 'data_processing_protocols' in data_processing:
+                        data_processing_protocols = data_processing['data_processing_protocols']  
+                    if 'software_versions' in data_processing:
+                        software_versions = data_processing['software_versions']  
+                    if 'germline_database' in data_processing:
+                        germline_database = data_processing['germline_database']  
+                    if 'paired_reads_assembly' in data_processing:
+                        paired_reads_assembly = data_processing['paired_reads_assembly']  
+                    if 'quality_thresholds' in data_processing:
+                        quality_thresholds = data_processing['quality_thresholds']  
+                    if 'primer_match_cutoffs' in data_processing:
+                        primer_match_cutoffs = data_processing['primer_match_cutoffs']  
+                    if 'collapsing_method' in data_processing:
+                        collapsing_method = data_processing['collapsing_method']  
 
 
                 total = total + 1
@@ -238,6 +250,7 @@ def studySummary(url, study_file, study_header, verbose):
         else:
             print("Error: Could not find study %s in %s"%
                   (study_row[study_header],query_url))
+            print(query_json)
             return False
                   
                    
