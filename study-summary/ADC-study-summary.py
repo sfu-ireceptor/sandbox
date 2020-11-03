@@ -176,7 +176,7 @@ def studySummary(url, study_file, study_header, verbose):
 
                 if 'keywords_study' in study_json and not study_json['keywords_study'] in keywords_study:
                     keywords_study.append(study_json['keywords_study'])
-                if 'subject_id' in study_json and not subject_json['subject_id'] in subject_list:
+                if 'subject_id' in subject_json and not subject_json['subject_id'] in subject_list:
                     subject_list.append(subject_json['subject_id'])
 
                 # For each sample...
