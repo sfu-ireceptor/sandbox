@@ -290,6 +290,11 @@ if __name__ == "__main__":
     labels, table = extractBlock('Rearrangement', 'Rearrangement',
                                  '', '', labels, table)
 
+    # Recursively process the Clone block, as it is the key defining block
+    # that is includive of everything at the Clone level.
+    labels, table = extractBlock('Clone', 'Clone',
+                                 '', '', labels, table)
+
     # We need to do some special processing for our ontologies. The _id field of 
     # the ontology does not have an entry in the spec, so we need to copy a bunch
     # of values from the _value field to the _id field.
