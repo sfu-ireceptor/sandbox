@@ -8,13 +8,14 @@ from airr.schema import Schema
 
 def processField(field, field_spec, block, required_fields, field_path,
                     airr_class, airr_api_query, airr_api_response,
-                    labels, table):
+                    labels, table, verbose):
 
         # Get the required fields for this schema object
         #required_fields = schema.required
-        print("**** processField: Field = %s\n"%(field))
-        print("**** processField: block=%s,path=%s,class=%s,query=%s,respsonse=%s\n"%(block,field_path,airr_class,airr_api_query,airr_api_response))
-        print("**** processField: field spec = %s\n"%(field_spec))
+        if verbose:
+            print("**** processField: Field = %s\n"%(field))
+            print("**** processField: block=%s,path=%s,class=%s,query=%s,respsonse=%s\n"%(block,field_path,airr_class,airr_api_query,airr_api_response))
+            print("**** processField: field spec = %s\n"%(field_spec))
 
         # Create a new dictionary entry for the field.
         field_dict = dict()
@@ -31,8 +32,8 @@ def processField(field, field_spec, block, required_fields, field_path,
         field_dict['ir_adc_api_query'] = airr_api_query + field
         field_dict['ir_adc_api_response'] = airr_api_response + field
         field_dict['airr_is_array'] = False
-        field_tag = field+airr_class
-        field_tag = field_dict['ir_adc_api_query']
+        #field_tag = field+airr_class+block
+        field_tag = field_dict['ir_adc_api_query']+"_"+airr_class+"_"+block
 
         # Get the object that describes the specification for this field and
         # process it.
@@ -42,7 +43,8 @@ def processField(field, field_spec, block, required_fields, field_path,
         #    print("**** processField: Looking for %s in spec"%(field_path+"."+field))
         #    field_spec = schema.spec(field_path)[field]
 
-        print("**** processField: Field spec for %s = %s\n"%(airr_api_query+field,field_spec))
+        if verbose:
+            print("**** processField: Field spec for %s = %s\n"%(airr_api_query+field,field_spec))
         append = True
         # I don't know why we need this!!! PLEASE FIGURE IT OUT AND DOCUMENT 8-)
         if '$ref' in field_spec and not field_spec['$ref'] == "#/Ontology":
@@ -56,10 +58,14 @@ def processField(field, field_spec, block, required_fields, field_path,
             append = False
         if append:    
             # Add the field to the table.
+            if verbose:
+                print("**** processField: Adding dict for field_tag = %s\n"%(field_tag))
+                print("**** processField: Adding dict for ir_adc_api_query = %s\n"%(field_dict['ir_adc_api_query']))
             table[field_tag] = field_dict
 
         for k,v in field_spec.items():
-            print("**** processField: Field = %s,%s\n"%(k,v))
+            if verbose:
+                print("**** processField: Field = %s,%s\n"%(k,v))
             # A field in the AIRR specification either has "normal" field specs
             # such as type, description, and example or it has AIRR specific field
             # specifications in a custom x-airr object. This custom object has things
@@ -136,8 +142,12 @@ def processField(field, field_spec, block, required_fields, field_path,
                         id_dict['ir_adc_api_response'] = airr_api_response + field + ".id"
                         id_dict['airr_is_array'] = False
                         id_dict['airr_type'] = "string"
-                        id_field_tag = id_dict['airr']+airr_class
-                        id_field_tag = id_dict['ir_adc_api_query']
+                        id_field_tag = id_dict['airr']+airr_class+block
+                        #id_field_tag = id_dict['ir_adc_api_query']
+                        id_field_tag = id_dict['ir_adc_api_query']+"_"+airr_class+"_"+block
+                        if verbose:
+                            print("**** processField: Adding dict for field_tag = %s\n"%(field_tag))
+                            print("**** processField: Adding dict for ir_adc_api_query = %s\n"%(id_dict['ir_adc_api_query']))
                         table[id_field_tag] = id_dict
                     else:
                         # If the $ref is to another object, then handle that object by
@@ -150,7 +160,7 @@ def processField(field, field_spec, block, required_fields, field_path,
                         labels, table = extractBlock(new_schema_name, airr_class,
                                              airr_api_query+field_dict['airr']+'.',
                                              airr_api_response+field_dict['airr']+'.',
-                                             labels, table)
+                                             labels, table, verbose)
                 elif k == 'items':
                     # Handle a list of items, meaning we have an array. In the AIRR
                     # specification we can have an array of $ref objects or an
@@ -166,7 +176,7 @@ def processField(field, field_spec, block, required_fields, field_path,
                             labels, table = extractBlock(new_schema_name, airr_class,
                                             airr_api_query+field_dict['airr']+'.',
                                             airr_api_response+field_dict['airr']+'.0.',
-                                            labels, table)
+                                            labels, table, verbose)
                         elif item_key == 'allOf':
                             # The item is an allOf so process each element.
                             for ref_dict in item_value:
@@ -180,7 +190,7 @@ def processField(field, field_spec, block, required_fields, field_path,
                                                airr_class,
                                                airr_api_query+field_dict['airr']+'.',
                                                airr_api_response+field_dict['airr']+'.0.',
-                                               labels, table)
+                                               labels, table, verbose)
                         elif item_key == 'type':
                             # This is the special ase of handling a "type" for an "array". 
                             # The only arrays that have a type are array fields. If this
@@ -221,17 +231,20 @@ def processField(field, field_spec, block, required_fields, field_path,
                     value = ','.join(v) 
                     field_dict[label] = value
                 elif k == 'properties':
-                    print("**** processField: PROPERTIES = %s,%s\n"%(k,v))
+                    if verbose:
+                        print("**** processField: PROPERTIES = %s,%s\n"%(k,v))
                     for prop_k,prop_v in v.items():
-                        print("**** processField: field, value = %s,%s\n"%(prop_k,prop_v))
+                        if verbose:
+                            print("**** processField: field, value = %s,%s\n"%(prop_k,prop_v))
                         labels, table = processField(prop_k, prop_v, block, required_fields,
                                                   field,
                                                   airr_class,
                                                   airr_api_query+field+".",
                                                   airr_api_response+field+".",
-                                                  labels, table)
+                                                  labels, table, verbose)
                 else:
-                    print("**** processField: key, value = %s,%s\n"%(k,v))
+                    if verbose:
+                        print("**** processField: key, value = %s,%s\n"%(k,v))
                     # If we get here, we are processing "normal" fields...
                     # First add it to the labels if we don't already have it.
                     label = 'airr_'+k
@@ -274,9 +287,10 @@ def processField(field, field_spec, block, required_fields, field_path,
 # - table: An array of dictionaries, based on the table provided but with
 # new rows added as per the fields that were found in the current object.
 
-def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, table):
+def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, table, verbose):
 
-    print("#### extractBlock %s\n"%(block))
+    if verbose:
+        print("#### extractBlock %s\n"%(block))
     # Use the AIRR library to get an AIRR Schema block for the current block.
     schema = Schema(block)
 
@@ -285,224 +299,14 @@ def extractBlock(block, airr_class, airr_api_query, airr_api_response, labels, t
 
     # For each field in the schema, process it
     for field in schema.properties:
-        print("#### extractBlock: processing property field %s\n"%(field))
+        if verbose:
+            print("#### extractBlock: processing property field %s\n"%(field))
         field_spec = schema.properties[field]
-        print("#### extractBlock: field spec %s\n"%(field_spec))
+        if verbose:
+            print("#### extractBlock: field spec %s\n"%(field_spec))
         labels, table = processField(field, field_spec, block, required_fields,"",
                                      airr_class, airr_api_query, airr_api_response,
-                                     labels, table)
-        continue
-        print("**** Field = %s\n"%(field))
-        # Create a new dictionary entry for the field.
-        field_dict = dict()
-        # Set up the basic field mappings for the stanard iReceptor fields.
-        field_dict['airr'] = field
-        field_dict['airr_spec'] = True
-        # If the field is required, set the attribute.
-        if field in required_fields:
-            field_dict['airr_required'] = True
-        else:
-            field_dict['airr_required'] = False
-        field_dict['ir_class'] = airr_class
-        field_dict['ir_subclass'] = block
-        field_dict['ir_adc_api_query'] = airr_api_query + field
-        field_dict['ir_adc_api_response'] = airr_api_response + field
-        field_dict['airr_is_array'] = False
-        field_tag = field+airr_class
-
-        # Get the object that describes the specification for this field and
-        # process it.
-        field_spec = schema.spec(field)
-        print("**** Field spec = %s\n"%(field_spec))
-        append = True
-        if '$ref' in field_spec and not field_spec['$ref'] == "#/Ontology":
-            append = False
-        if 'type' in field_spec and field_spec['type'] == 'array':
-            if '$ref' in field_spec['items'] or 'allOf' in field_spec['items']:
-                append = False
-            else:
-                field_dict['airr_is_array'] = True
-        if append:    
-            # Add the field to the table.
-            table[field_tag] = field_dict
-
-        for k,v in field_spec.items():
-            print("*** Field = %s,%s\n"%(k,v))
-            # A field in the AIRR specification either has "normal" field specs
-            # such as type, description, and example or it has AIRR specific field
-            # specifications in a custom x-airr object. This custom object has things
-            # about the MiAIRR standard and the ADC API. We have to handle both.
-
-            # Handle the x-airr schema objects
-            if k == 'x-airr':
-                # Iterated over the x-airr schema objects.
-                for xairr_k, xairr_v in v.items():
-                    # If it is an ontology object, we don't record anything.
-                    if xairr_k == 'ontology':
-                       continue
-                    # The miairr tag is a controlled vocabulary of "essential",
-                    # "important", or "defined". It controls the setting of two
-                    # columns in the mapping, airr_miairr and airr_required.
-                    elif xairr_k == 'miairr':
-                        # The miairr tag is a controlled vocabulary of "essential",
-                        # "important", or "defined". If this field exists and is 
-                        # set to one of these, then the airr_miairr label should be
-                        # set to True as it is a MiAIRR field. If it isn't one of these
-                        # values then it is an error.
-                        if xairr_v in ['essential', 'important', 'defined']:
-                            label = 'airr_miairr'
-                            if not label in labels:
-                                labels.append(label)
-                            # Add the value of this field to the column.
-                            field_dict[label] = True
-
-                            # The airr_required field should be True for all MiAIRR terms.
-                            #label = 'airr_required'
-                            #if not label in labels:
-                            #    labels.append(label)
-                            ## Add the value of this field to the column.
-                            #field_dict[label] = True
-                        else:
-                            print("Warning: Invalid x_airr:miairr field %s"%(xairr_v))
-                    else:
-                        # If it is a string value, we want to clean it up, in case
-                        # there is some extra white space...
-                        value = xairr_v
-                        if isinstance(value, str):
-                            value = value.strip()
-                        # Create a new label for this field, as we want to keep track
-                        # of this as a column in our table. We prefic all of the AIRR
-                        # columns with airr_ to differentiate them.
-                        label = 'airr_'+xairr_k
-                        # Only add it if it isn't in the labels already.
-                        if not label in labels:
-                            labels.append(label)
-                        # Add the value if this field to the column.
-                        field_dict[label] = value
-            else:
-                # We are processing normal YAML spec fields.
-                if k == '$ref':
-                    # Handle a $ref field to another object
-                    if v == "#/Ontology":
-                        # If the $ref is to an Ontology, mark the type as ontology.
-                        field_dict["airr_type"] = "ontology"
-                        # We want to add on a .value qualifier to the ADC API variable
-                        # names as we return the value component of the ontology in
-                        # the API.
-                        field_dict['ir_adc_api_query'] = field_dict['ir_adc_api_query'] + '.label'
-                        field_dict['ir_adc_api_response'] = field_dict['ir_adc_api_response'] + '.label'
-                        # For ontology fields, we need to create a second entry for
-                        # the id component of the ontology.
-                        # Create a new dictionary entry for the id field.
-                        id_dict = dict()
-                        # Set up the basic field mappings for the iReceptor fields.
-                        id_dict['airr'] = field + "_id"
-                        id_dict['ir_class'] = airr_class
-                        id_dict['ir_subclass'] = block
-                        # Create the .id qualifier for the API names.
-                        id_dict['ir_adc_api_query'] = airr_api_query + field + ".id"
-                        id_dict['ir_adc_api_response'] = airr_api_response + field + ".id"
-                        id_dict['airr_is_array'] = False
-                        id_dict['airr_type'] = "string"
-                        id_field_tag = id_dict['airr']+airr_class
-                        table[id_field_tag] = id_dict
-                    else:
-                        # If the $ref is to another object, then handle that object by
-                        # recursion. We get the object to use from the name.
-                        ref_array = v.split("/")
-                        new_schema_name = ref_array[1]
-                        # We recurse on the new schema block, making sure that we track
-                        # that we are processing a new object and that the API field 
-                        # references need to reference the hierarchy correctly. 
-                        labels, table = extractBlock(new_schema_name, airr_class,
-                                             airr_api_query+field_dict['airr']+'.',
-                                             airr_api_response+field_dict['airr']+'.',
-                                             labels, table)
-                elif k == 'items':
-                    # Handle a list of items, meaning we have an array. In the AIRR
-                    # specification we can have an array of $ref objects or an
-                    # "allOf" directive of $ref objects which means we have to process
-                    # each element.
-                    for item_key, item_value in v.items():
-                        if item_key == '$ref':
-                            # The item is a $ref, get the sub-object and process it.
-                            ref_array = item_value.split("/")
-                            new_schema_name = ref_array[1]
-                            # Note the API response has a .0. in it because this
-                            # is an array.
-                            labels, table = extractBlock(new_schema_name, airr_class,
-                                            airr_api_query+field_dict['airr']+'.',
-                                            airr_api_response+field_dict['airr']+'.0.',
-                                            labels, table)
-                        elif item_key == 'allOf':
-                            # The item is an allOf so process each element.
-                            for ref_dict in item_value:
-                                # The item is a $ref, get the sub-object and process it.
-                                if '$ref' in ref_dict:
-                                    ref_array = ref_dict['$ref'].split("/")
-                                    new_schema_name = ref_array[1]
-                                    # Note the API response has a .0. in it because
-                                    # this is an array.
-                                    labels, table = extractBlock(new_schema_name,
-                                               airr_class,
-                                               airr_api_query+field_dict['airr']+'.',
-                                               airr_api_response+field_dict['airr']+'.0.',
-                                               labels, table)
-                        elif item_key == 'type':
-                            # This is the special ase of handling a "type" for an "array". 
-                            # The only arrays that have a type are array fields. If this
-                            # is the case, we want to set the type of the array field.
-                            # First add it to the labels if we don't already have it.
-                            label = 'airr_type'
-                            if not label in labels:
-                                labels.append(label)
-                            # Strip off any whitespace if it is a string...
-                            value = item_value 
-                            if isinstance(v, str):
-                                value = v.strip()
-                            field_dict[label] = value
-                elif k == 'example':
-                    # Processing an example - some special cases...
-                    # First add it to the labels if we don't already have it.
-                    label = 'airr_'+k
-                    if not label in labels:
-                        labels.append(label)
-                    if isinstance(v,dict):
-                        # If it is a dict() then we have an ontology term, process
-                        # the ID and value for the ontology.
-                        field_dict[label] = str(v['id']) + ', ' + v['label']
-                    elif not isinstance(v, str):
-                        # If it isn't a string, store it
-                        field_dict[label] = v
-                    else:
-                        # If it is a string, then we want to strip it in case it has
-                        # odd white space...
-                        field_dict[label] = v.strip()
-                elif k == 'enum':
-                    # First add it to the labels if we don't already have it.
-                    label = 'airr_'+k
-                    if not label in labels:
-                        labels.append(label)
-                    # Handle the enum case, where we join the enum fields so
-                    # we can track them.
-                    value = ','.join(v) 
-                    field_dict[label] = value
-                elif k == 'properties':
-                    print("######## PROPERTIES = %s,%s\n"%(k,v))
-                    for prop_k,prop_v in v.items():
-                        print("########### field, value = %s,%s\n"%(prop_k,prop_v))
-                else:
-                    print("######## key, value = %s,%s\n"%(k,v))
-                    # If we get here, we are processing "normal" fields...
-                    # First add it to the labels if we don't already have it.
-                    label = 'airr_'+k
-                    if not label in labels:
-                        labels.append(label)
-                    # Strip off any whitespace if it is a string...
-                    value = v
-                    if isinstance(v, str):
-                        value = v.strip()
-                    field_dict[label] = value
+                                     labels, table, verbose)
 
     # We are done, return the labels and the table.
     return labels, table
@@ -516,6 +320,12 @@ def getArguments():
 
     # The YAML spec file to load
     #parser.add_argument("airr_spec_file")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Run the program in verbose mode. This option will generate debug output and may cause a problem with using the config file as a TSV file.")
+
 
     # Parse the command line arguements.
     options = parser.parse_args()
@@ -539,16 +349,21 @@ if __name__ == "__main__":
     # recursively process any $ref entries in the YAML and built correct
     # entries for each field.
     labels, table = extractBlock('Repertoire', 'Repertoire',
-                                 '', '', labels, table)
+                                 '', '', labels, table, options.verbose)
     # Recursively process the Rearrangement block, as it is the key defining block
     # that is includive of everything at the Rearangement level.
     labels, table = extractBlock('Rearrangement', 'Rearrangement',
-                                 '', '', labels, table)
+                                 '', '', labels, table, options.verbose)
 
     # Recursively process the Clone block, as it is the key defining block
     # that is includive of everything at the Clone level.
     labels, table = extractBlock('Clone', 'Clone',
-                                 '', '', labels, table)
+                                 '', '', labels, table, options.verbose)
+
+    # Recursively process the Clone block, as it is the key defining block
+    # that is includive of everything at the Clone level.
+    labels, table = extractBlock('Cell', 'Cell',
+                                 '', '', labels, table, options.verbose)
 
     # We need to do some special processing for our ontologies. The _id field of 
     # the ontology does not have an entry in the spec, so we need to copy a bunch
@@ -584,6 +399,8 @@ if __name__ == "__main__":
                 # We want the airr_spec field to be TRUE.
                 id_dict['airr_spec'] = True
                 # Finally, we store the updated dict in the table.
+                if options.verbose:
+                    print("$$$$ Updating dict for field_tag = %s\n"%(id_field_tag))
                 table[id_field_tag] = id_dict
 
     # Once we have our table built, we need to print it out.
