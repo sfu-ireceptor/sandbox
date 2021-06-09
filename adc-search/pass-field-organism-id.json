@@ -1,0 +1,9 @@
+{
+  "filters": {
+        "op":"=",
+        "content": {
+          "field":"subject.species.id",
+          "value":"NCBITAXON:9606"
+        }
+  }
+}
