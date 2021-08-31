@@ -22,8 +22,6 @@ else
 	OUTPUT_TYPE=$4
 fi
 
-echo "Running study summary for ${REPERTOIRE_URL}"
-
 ./get_repertoire_field.sh ${REPERTOIRE_URL} ${AIRR_FIELD} ${QUERY_FILE} > /tmp/studies.tsv
 
 python3 ./ADC-study-summary.py ${REPERTOIRE_URL} /tmp/studies.tsv ${AIRR_FIELD} ${OUTPUT_TYPE}
