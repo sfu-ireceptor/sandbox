@@ -2,7 +2,9 @@ import urllib.request, urllib.parse
 import pandas as pd
 import numpy as np
 import argparse
+import pprint
 import json
+from json2html import *
 import os, ssl
 import sys
 import time
@@ -86,13 +88,13 @@ def generateQuery(field, value):
     return query_str
 
 
-def studySummary(url, study_file, study_header, verbose):
+def studySummary(url, study_file, study_header, json_output, html_output, irplus_output, verbose):
     # Ensure our HTTP set up has been done.
     initHTTP()
     # Get the HTTP header information (in the form of a dictionary)
     header_dict = getHeaderDict()
 
-    # Open the file that contains the list of CDR3s to search
+    # Open the file that contains the list of studies to search
     try:
         study_df = pd.read_csv(study_file, sep='\t', engine='python', encoding='utf-8-sig')
     except Exception as err:
@@ -107,17 +109,21 @@ def studySummary(url, study_file, study_header, verbose):
     # Build the full URL combining the URL and the entry point.
     query_url = url
 
-    # Iterate over the CDR3s
-    for index, study_row in study_df.iterrows():
-        if verbose:
-            print("INFO: Looking for CDR3 %s"%(study_row[study_header]))
+    # Create a dictionary to track all of our studies.
+    study_list_dict = dict()
 
-        study_query = generateQuery("study.study_id", study_row[study_header])
+    # Iterate over the studies
+    for index, study_row in study_df.iterrows():
+        study_id = study_row[study_header]
+        if verbose:
+            print("INFO: Looking for study %s"%(study_id))
+
+        study_query = generateQuery("study.study_id", study_id)
 
         if verbose:
             print('INFO: Performing query: ' + str(study_query))
 
-        # Perform the query.
+        # Perform the query to get all of the Repertoires for the study.
         query_json = processQuery(query_url, header_dict, study_query, verbose)
         if verbose:
             print('INFO: Query response: ' + str(query_json))
@@ -140,8 +146,15 @@ def studySummary(url, study_file, study_header, verbose):
 
         # Get the Repertoire array 
         repertoire_array = query_json[repertoire_key]
+
         num_responses = len(repertoire_array)
         if num_responses > 0:
+            study_dict = dict()
+            if study_id not in study_list_dict:
+                study_list_dict[study_id] = study_dict 
+
+            study_dict['subjects'] = dict()
+
             total = 0
 
             # Initialize the fields
@@ -179,8 +192,26 @@ def studySummary(url, study_file, study_header, verbose):
                 if 'subject_id' in subject_json and not subject_json['subject_id'] in subject_list:
                     subject_list.append(subject_json['subject_id'])
 
+                if 'subject_id' in subject_json:
+                    subject_id = subject_json['subject_id']
+                    if not subject_id in study_dict['subjects']:
+                        subject_dict = dict()
+                        subject_dict['samples'] = dict()
+                        study_dict['subjects'][subject_id] = subject_dict
+                    else:
+                        subject_dict = study_dict['subjects'][subject_id]
+
                 # For each sample...
                 for sample_json in repertoire['sample']:
+                    if 'sample_id' in sample_json:
+                        sample_id = sample_json['sample_id']
+                        sample_dict = dict()
+                        if not sample_id in subject_dict['samples']:
+                            sample_dict = dict()
+                            subject_dict['samples'][sample_id] = sample_dict
+                        else:
+                            sample_dict = subject_dict['samples'][sample_id]
+
                     if total == 0:
                         if 'sequencing_platform' in sample_json:
                             sequencing_platform = sample_json['sequencing_platform']
@@ -228,7 +259,8 @@ def studySummary(url, study_file, study_header, verbose):
                 total = total + 1
                 
             num_subjects = len(subject_list)
-            print("%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%
+            if irplus_output:
+                print("%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"%
                      (study_row[study_header], keywords_study,
                       cell_subset, pcr_target_locus, num_subjects,
                       num_responses, template_class,
@@ -255,6 +287,13 @@ def studySummary(url, study_file, study_header, verbose):
                   
                    
         time.sleep(0.5)
+    #print(study_list_dict)
+    if html_output: 
+        json_table = json2html.convert(json = study_list_dict)
+        print(json_table)
+    #pprint.pprint(study_list_dict)
+    if json_output: 
+        print(json.dumps(study_list_dict, sort_keys=True, indent=4))
     return True
 
 def getArguments():
@@ -263,6 +302,7 @@ def getArguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=""
     )
+    parser = argparse.ArgumentParser()
 
     # The URL for the repository to test
     parser.add_argument("url")
@@ -270,6 +310,21 @@ def getArguments():
     parser.add_argument("study_file")
     # Comma separated list of query files to test.
     parser.add_argument("column_header")
+    # Output JSON
+    parser.add_argument(
+        "--json_output",
+        action="store_true",
+        help="Output the study summaries in JSON")
+    # Output HTML
+    parser.add_argument(
+        "--html_output",
+        action="store_true",
+        help="Output the study summaries in an HTML table")
+    # Output iRPlus table format
+    parser.add_argument(
+        "--irplus_output",
+        action="store_true",
+        help="Output the study summaries in iRPlus table format")
     # Verbosity flag
     parser.add_argument(
         "-v",
@@ -281,13 +336,16 @@ def getArguments():
     options = parser.parse_args()
     return options
 
-# Search the given ADC API repoisotyr for a set of CDR3 from a column in a file
+# Search the given ADC API repoistory for a set of studys from a column in a file
+# that contains a study ID, give us back a summary of each study.
 if __name__ == "__main__":
     # Get the command line arguments.
     options = getArguments()
-    # Perform the query analysis, gives us back a dictionary.
+    # Perform the query analysis
     success = studySummary(options.url, options.study_file,
-                           options.column_header, options.verbose)
+                           options.column_header, 
+                           options.json_output, options.html_output, options.irplus_output,
+                           options.verbose)
     # Return success if successful
     if not success:
         sys.exit(1)
