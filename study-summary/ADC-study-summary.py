@@ -197,6 +197,8 @@ def studySummary(url, study_file, study_header, json_output, html_output, irplus
                     if not subject_id in study_dict['subjects']:
                         subject_dict = dict()
                         subject_dict['samples'] = dict()
+                        study_dict['study_title'] = study_json['study_title']
+                        study_dict['pub_ids'] = study_json['pub_ids']
                         study_dict['subjects'][subject_id] = subject_dict
                     else:
                         subject_dict = study_dict['subjects'][subject_id]
@@ -289,9 +291,16 @@ def studySummary(url, study_file, study_header, json_output, html_output, irplus
         time.sleep(0.5)
     #print(study_list_dict)
     if html_output: 
-        json_table = json2html.convert(json = study_list_dict)
+        print("<!DOCTYPE html>\n<html>\n<head>\n<style>")
+        print("table { border: 0px; border-collapse: collapse; text-align: left; vertical-align: top;}")
+        print("td { border: 0px; border-collapse: collapse; text-align: left; vertical-align: top;}")
+        print("th { border: 0px; border-collapse: collapse; text-align: left; vertical-align: top;}")
+        print("</style>")
+        print("</head>\n<body>")
+        json_table = json2html.convert(json = study_list_dict, table_attributes="")
         print(json_table)
-    #pprint.pprint(study_list_dict)
+        print("</body>\n</html>")
+
     if json_output: 
         print(json.dumps(study_list_dict, sort_keys=True, indent=4))
     return True
