@@ -5,4 +5,4 @@ metadata about a study in an ADC compliant repository.
 
 # Usage
 
-usage: ./run_repository.sh http://covid19-1.ireceptor.org/airr/v1/repertoire
+usage: ./run_repository.sh http://turnkey-test2.ireceptor.org/airr/v1/repertoire study_id ./filter.json --html_output
