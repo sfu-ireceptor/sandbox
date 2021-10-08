@@ -144,11 +144,11 @@ def searchCDR3(url, cdr3_file, cdr3_header, verbose):
         if num_responses > 0:
             for repertoire in facet_array:
                 total = total + repertoire["count"]
-                repertoire_list.append(repertoire["repertoire_id"])
+                repertoire_list.append(repertoire)
             print("%d: Found %d instances of %s in %d repertoires"%
                   (index, total, cdr3_row[cdr3_header], num_responses),flush=True)
-            for repertoire_id in repertoire_list:
-                print("    Repertoire %s"%(repertoire_id))
+            for repertoire in repertoire_list:
+                print("    Repertoire %s (%d)"%(repertoire["repertoire_id"],repertoire['count']))
 
             #print("    Details: %s (%s %s), MHC = %s,%s (%s), Epitope = %s (%s,%s)"%(
             #      cdr3_row["Gene"], cdr3_row["V"], cdr3_row["J"],
