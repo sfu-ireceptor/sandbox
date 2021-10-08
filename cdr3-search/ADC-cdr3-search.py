@@ -121,6 +121,7 @@ def searchCDR3(url, cdr3_file, cdr3_header, verbose):
         # Print out an error if the query failed.
         if len(query_json) == 0:
             print('ERROR: Query %s failed to %s'%(query_json, query_url))
+            continue
             return False
 
         # Check for a correct Info object.
@@ -138,49 +139,28 @@ def searchCDR3(url, cdr3_file, cdr3_header, verbose):
         # 'Facet': [{'count': 71, 'repertoire_id': '5ec449f0ba06faa86ec02506'}]
         facet_array = query_json[facet_key ]
         num_responses = len(facet_array)
+        total = 0
+        repertoire_list = []
         if num_responses > 0:
-            total = 0
             for repertoire in facet_array:
                 total = total + repertoire["count"]
+                repertoire_list.append(repertoire["repertoire_id"])
             print("%d: Found %d instances of %s in %d repertoires"%
                   (index, total, cdr3_row[cdr3_header], num_responses),flush=True)
+            for repertoire_id in repertoire_list:
+                print("    Repertoire %s"%(repertoire_id))
+
             #print("    Details: %s (%s %s), MHC = %s,%s (%s), Epitope = %s (%s,%s)"%(
             #      cdr3_row["Gene"], cdr3_row["V"], cdr3_row["J"],
             #      cdr3_row["MHC A"], cdr3_row["MHC B"], cdr3_row["MHC class"],
             #      cdr3_row["Epitope"], cdr3_row["Epitope gene"], cdr3_row["Epitope species"]),
             #      flush=True)
+        else:
+            print("%d: Found %d instances of %s"% (index, total, cdr3_row[cdr3_header]),flush=True)
                   
                    
         time.sleep(0.5)
     return True
-
-    if False:
-            # check if facets query
-            if query_dict.get('facets'):
-                response_tag = "Facet"
-
-            if not response_tag in query_json:
-                print("ERROR: Expected to find a '" + response_tag +"' object, none found")
-                return 1
-        
-            query_response_array = query_json[response_tag]
-            num_responses = len(query_response_array)
-
-            if not gold_disabled:
-                if gold_results.get(query_name):
-                    if gold_results[query_name].get('records'):
-                        if num_responses != int(gold_results[query_name]['records']):
-                            print("ERROR: Expected " + str(gold_results[query_name]['records']) + " != " + str(num_responses) + " records")
-                            return 1
-                    else:
-                        print('WARNING: No expected records specified for ' + query_name)
-                else:
-                    print('WARNING: No gold expectation for ' + query_name)
-
-            print("INFO: Received " + str(num_responses) + " " + response_tag + "s from query")
-            print('PASS: Query file ' + query_file + ' to ' + query_url + ' OK')
-
-    return 0
 
 def getArguments():
     # Set up the command line parser
