@@ -1,0 +1,7 @@
+Fields
+study.study_id
+study.study_title
+subject.diagnosis.disease_diagnosis.label
+subject.subject_id
+sample.sample_id
+sample.pcr_target.pcr_target_locus
