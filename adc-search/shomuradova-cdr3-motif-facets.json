@@ -1,0 +1,31 @@
+{
+    "filters": {
+        "op" : "or",
+	"content" : [
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYSDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYGDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYRDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYSTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYGTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYRTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYSGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYGGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYRGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYSNTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYGNTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSYRNTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDSDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDGDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDRDTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDSTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDGTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDRTTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDSGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDGGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDRGTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDSNTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDGNTGELFF" } },
+	    { "op":"=", "content": { "field":"junction_aa", "value":"CASSDRNTGELFF" } }
+        ]
+    }, "facets":"repertoire_id"
+}
