@@ -57,7 +57,7 @@ This query is essentially searching the iReceptor COVID19 data (a substantial po
 The output from the following very basic query of a single repertoire is given as follows:
 
 ```
-python3 adc-search.py repository-covid19.tsv covid19-1-repertoire.json shomuradova-cdr3-motif-facets.json --service_delay=0.2 --output_file=one_reperotire.json --field_file repertoire_fields.tsv
+python3 adc-search.py repository-covid19.tsv covid19-1-repertoire.json shomuradova-cdr3-motif-facets.json --service_delay=0.2 --output_file=output_one_reperotire.json --field_file repertoire_fields.tsv
 Info: Processing 1 repertoires from http://covid19-1.ireceptor.org/airr/v1/rearrangement
 Info: Performed 1 queries in 0.447262 s, 2.235828 queries/s
 Info: Processing 0 repertoires from http://covid19-2.ireceptor.org/airr/v1/rearrangement
@@ -67,4 +67,4 @@ Info: Performed 0 queries in 0.000002 s, 0.000000 queries/s
 Info: Processing 0 repertoires from http://covid19-4.ireceptor.org/airr/v1/rearrangement
 Info: Performed 0 queries in 0.000004 s, 0.000000 queries/s
 ```
-The output from this query can be found [one_reperotire.json](one_reperotire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
+The output from this query can be found [output_one_reperotire.json](output_one_reperotire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
