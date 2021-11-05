@@ -17,9 +17,9 @@ like the following:
 The ADC Search python program makes it possible to do this quite complex query with a single command. 
 
 # Command usage 
-
+```
 python3 adc-search.py repository.tsv repertoire-query.json rearrangement-query.json --service_delay=0.2 --output_file=covid19-trb-shomuradova-facet.json --field_file repertoire_fields.tsv
-
+```
 Positional parameters:
 - repository.tsv: A TSV file with a column called URL. This column should have a list of the iADC repositories that you want to search.
 - repertoire-query.json: A JSON repertoire query in the ADC API query format. This query is sent to the ADC API /repertoire query end point of each repository. The list of repertoire_ids that are returned from this query are used to determine which repertoire to use in the /rearrangement search (see below).
@@ -41,3 +41,14 @@ The ouput of the command returns a JSON array, structured as follows:
       - "Info": The standard ADC API JSON Info object. This is identical to the Info object returned by the ADC API.
       - The normal ADC API /rearrangement object that is returned by the ADC API (see the ADC API docs for more info). This will either be a "Facet" field or a "Rearrangement" field. Its structure is described in the ADC API documentation.
       - "Repertoire": A JSON object that contains the requested repertoire metadata fields for this query (essentially the fields in the "field_filename.tsv" file above) 
+
+# Example usage
+
+An example use of this code, using the input files in the repository is:
+
+```
+python3 adc-search.py repository-covid19.tsv covid19-trb.json shomuradova-cdr3-motif-facets.json --service_delay=0.2 --output_file=covid19-trb-shomuradova-facet.json --field_file repertoire_fields.tsv
+```
+This command searches the COVID 19 repositories [repository-covid19.tsv](repository-covid19.tsv) for repetoires with TRB data from subjects diagnosed with COVID-19 [covid19-trb.json](covid19-trb.json) and then issues a CDR3 motif search (searching for CDR3 with the following pattern - CASS[YD][SGR][DTGN]TGELFF) and asks for a facet (count) response for each repertoire_id [shomuradova-cdr3-motif-facets.json](shomuradova-cdr3-motif-facets.json).
+
+This query is essentially searching the iReceptor COVID19 data (a substantial portion of the ADC) for the public CDR3 motif that was found in the paper from Shomuradov et al. [SARS-CoV-2 Epitopes Are Recognized by a Public and Diverse Repertoire of Human T Cell Receptors](https://doi.org/10.1016/j.immuni.2020.11.004).
