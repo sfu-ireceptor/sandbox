@@ -1,0 +1,44 @@
+[
+    {
+        "repository": "http://covid19-1.ireceptor.org/airr/v1/rearrangement",
+        "results": [
+            {
+                "Facet": [
+                    {
+                        "count": 154,
+                        "repertoire_id": "5efbc7155f94cb6215deeca3"
+                    }
+                ],
+                "Info": {
+                    "contact": {
+                        "name": "AIRR Community",
+                        "url": "https://github.com/airr-community"
+                    },
+                    "description": "API response for repertoire query",
+                    "title": "AIRR Data Commons API",
+                    "version": 1.3
+                },
+                "Repertoire": {
+                    "sample.pcr_target.pcr_target_locus": "TRB",
+                    "sample.sample_id": "Pt-12-1",
+                    "study.study_id": "IR-Binder-000001",
+                    "study.study_title": "Schulthei\u00df et al., Next Generation Sequencing of T and B cell receptor repertoires from COVID-19 patients showed signatures associated with severity of disease",
+                    "subject.diagnosis.disease_diagnosis.label": "COVID-19",
+                    "subject.subject_id": "Pt-12"
+                }
+            }
+        ]
+    },
+    {
+        "repository": "http://covid19-2.ireceptor.org/airr/v1/rearrangement",
+        "results": []
+    },
+    {
+        "repository": "http://covid19-3.ireceptor.org/airr/v1/rearrangement",
+        "results": []
+    },
+    {
+        "repository": "http://covid19-4.ireceptor.org/airr/v1/rearrangement",
+        "results": []
+    }
+]
