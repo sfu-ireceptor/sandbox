@@ -52,3 +52,19 @@ python3 adc-search.py repository-covid19.tsv covid19-trb.json shomuradova-cdr3-m
 This command searches the COVID 19 repositories [repository-covid19.tsv](repository-covid19.tsv) for repetoires with TRB data from subjects diagnosed with COVID-19 [covid19-trb.json](covid19-trb.json) and then issues a CDR3 motif search (searching for CDR3 with the following pattern - CASS[YD][SGR][DTGN]TGELFF) and asks for a facet (count) response for each repertoire_id [shomuradova-cdr3-motif-facets.json](shomuradova-cdr3-motif-facets.json). It also asks for a set or Repertoire metadata to be returned as specified in [repertoire_fields.tsv](repertoire_fields.tsv).
 
 This query is essentially searching the iReceptor COVID19 data (a substantial portion of the ADC) for the public CDR3 motif that was found in the paper from Shomuradov et al. [SARS-CoV-2 Epitopes Are Recognized by a Public and Diverse Repertoire of Human T Cell Receptors](https://doi.org/10.1016/j.immuni.2020.11.004).
+
+# Example Output
+The output from the following very basic query of a single repertoire is given as follows:
+
+```
+python3 adc-search.py repository-covid19.tsv covid19-1-repertoire.json shomuradova-cdr3-motif-facets.json --service_delay=0.2 --output_file=one_reperotire.json --field_file repertoire_fields.tsv
+Info: Processing 1 repertoires from http://covid19-1.ireceptor.org/airr/v1/rearrangement
+Info: Performed 1 queries in 0.447262 s, 2.235828 queries/s
+Info: Processing 0 repertoires from http://covid19-2.ireceptor.org/airr/v1/rearrangement
+Info: Performed 0 queries in 0.000003 s, 0.000000 queries/s
+Info: Processing 0 repertoires from http://covid19-3.ireceptor.org/airr/v1/rearrangement
+Info: Performed 0 queries in 0.000002 s, 0.000000 queries/s
+Info: Processing 0 repertoires from http://covid19-4.ireceptor.org/airr/v1/rearrangement
+Info: Performed 0 queries in 0.000004 s, 0.000000 queries/s
+```
+The output from this query can be found [one_reperotire.json](one_reperotire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
