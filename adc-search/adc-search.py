@@ -273,6 +273,9 @@ if __name__ == "__main__":
     if options.verbose:
         print("Rearrangement query = %s"%(rearrangement_json))
 
+    repo_count = 0
+    print("[", file=output_handle)
+    number_repos = len(repository_df.index)
     for index, row in repository_df.iterrows():
         if options.verbose:
             print("Row %d: %s"% (index, row['URL']+options.repertoire_api))
@@ -283,7 +286,11 @@ if __name__ == "__main__":
             performRearrangementQuery(row['URL']+options.rearrangement_api,
                     repertoires, rearrangement_dict, repertoire_field_df, output_handle,
                     options.service_delay, options.verbose)
+        repo_count = repo_count+1
+        if repo_count < number_repos:
+            print(",", file=output_handle)
 
+    print("]", file=output_handle)
     #if not success:
     #    sys.exit(1)
 
