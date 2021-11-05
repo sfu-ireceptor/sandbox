@@ -1,4 +1,5 @@
 Fields
+repertoire_id
 study.study_id
 study.study_title
 subject.diagnosis.disease_diagnosis.label
