@@ -56,7 +56,7 @@ def performRearrangementQuery(rearrangement_url, repertoires, rearrangement_dict
         time.sleep(service_delay)
 
     
-    print("]\n}", file=output_handle)
+    print("]\n}", file=output_handle, flush=True)
     t_end = time.perf_counter()
     print("Info: Performed %d queries in %f s, %f queries/s" %
           (count, t_end - t_start, count/(t_end - t_start)))
