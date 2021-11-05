@@ -1,0 +1,22 @@
+{
+  "filters": {
+    "op":"and",
+    "content": [
+      {
+        "op":"=",
+        "content": {
+          "field":"subject.diagnosis.disease_diagnosis.id",
+          "value":"DOID:0080600"
+        }
+      },
+      {
+        "op":"=",
+        "content": {
+          "field":"repertoire_id",
+          "value":"5efbc7155f94cb6215deeca3"
+        }
+      }
+    ]
+  }
+}
+
