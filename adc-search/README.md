@@ -67,4 +67,4 @@ Info: Performed 0 queries in 0.000002 s, 0.000000 queries/s
 Info: Processing 0 repertoires from http://covid19-4.ireceptor.org/airr/v1/rearrangement
 Info: Performed 0 queries in 0.000004 s, 0.000000 queries/s
 ```
-The output from this query can be found [output_one_reperotire.json](output_one_reperotire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
+The output from this query can be found [output_one_repertoire.json](output_one_repertoire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
