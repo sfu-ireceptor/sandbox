@@ -45,24 +45,51 @@ def processField(field, field_spec, block, required_fields, field_path,
 
         if verbose:
             print("**** processField: Field spec for %s = %s\n"%(airr_api_query+field,field_spec))
+        # We want to append a field to our table of fields in only those
+        # cases where the field is actually a leaf node in the "tree" of the spec.
+        # By default, we assume we want to add the field.
         append = True
-        # I don't know why we need this!!! PLEASE FIGURE IT OUT AND DOCUMENT 8-)
+        # If the field is a $ref to another object, then it is not a field in and
+        # of itself that we will refer to in the AIRR config file. We later recurse
+        # on the $ref object, to pick up all of the fields within the $ref. The one special
+        # case to this is if the $ref is to the AIRR Ontology object, for which we
+        # have to do some special processing.
         if '$ref' in field_spec and not field_spec['$ref'] == "#/Ontology":
             append = False
+            if verbose:
+                print("**** processField: No append for $ref - %s\n"%(field_tag))
+        # If the field is an array of objects (the items for the array contain
+        # objects of or multiple fields (allOf)) then we recurse on the $ref objects
+        # and we don't want to add this field to our final field table. If it an array
+        # of basic types (integer, string) then we do want to add it to the field table.
         if 'type' in field_spec and field_spec['type'] == 'array':
-            if '$ref' in field_spec['items'] or 'allOf' in field_spec['items']:
+            if ('$ref' in field_spec['items'] or 'allOf' in field_spec['items'] or 
+                ('type' in field_spec['items'] and field_spec['items']['type'] == 'object')):
                 append = False
+                if verbose:
+                    print("**** processField: No append for arrays of $ref - %s\n"%(field_tag))
             else:
                 field_dict['airr_is_array'] = True
+        # If the field is an object then we recurse on the object's fields and we don't
+        # want to add this field to our field table.
         if 'type' in field_spec and field_spec['type'] == 'object':
             append = False
+            if verbose:
+                print("**** processField: No append for objects - %s\n"%(field_tag))
+
+        # Finally, if append == True then we are processing a field and we need to add
+        # it to the field table.
         if append:    
             # Add the field to the table.
             if verbose:
                 print("**** processField: Adding dict for field_tag = %s\n"%(field_tag))
                 print("**** processField: Adding dict for ir_adc_api_query = %s\n"%(field_dict['ir_adc_api_query']))
             table[field_tag] = field_dict
+        else:
+            if verbose:
+                print("**** processField: NOT Adding dict for field_tag = %s\n"%(field_tag))
 
+        # Iterate over the fields specs as required to set the fields attributes.
         for k,v in field_spec.items():
             if verbose:
                 print("**** processField: Field = %s,%s\n"%(k,v))
@@ -164,8 +191,24 @@ def processField(field, field_spec, block, required_fields, field_path,
                 elif k == 'items':
                     # Handle a list of items, meaning we have an array. In the AIRR
                     # specification we can have an array of $ref objects or an
-                    # "allOf" directive of $ref objects which means we have to process
-                    # each element.
+                    # "allOf" directive of $ref objects or a an actual object,
+                    # which means we have to process each element.
+                    
+                    if "type" in v and v["type"] == "object":
+                        properties = v["properties"]
+                        if verbose:
+                            print("**** processField: PROPERTIES2 = %s\n"%(properties))
+                        for prop_k,prop_v in properties.items():
+                            if verbose:
+                                print("**** processField: field, value = %s,%s\n"%(prop_k,prop_v))
+                            # Note the API response has a .0. in it because this
+                            # is an array.
+                            labels, table = processField(prop_k, prop_v, block, required_fields,
+                                                      field,
+                                                      airr_class,
+                                                      airr_api_query+field+".",
+                                                      airr_api_response+field+".0.",
+                                                      labels, table, verbose)
                     for item_key, item_value in v.items():
                         if item_key == '$ref':
                             # The item is a $ref, get the sub-object and process it.
@@ -360,9 +403,14 @@ if __name__ == "__main__":
     labels, table = extractBlock('Clone', 'Clone',
                                  '', '', labels, table, options.verbose)
 
-    # Recursively process the Clone block, as it is the key defining block
-    # that is includive of everything at the Clone level.
+    # Recursively process the Cell block, as it is the key defining block
+    # that is includive of everything at the Cell level.
     labels, table = extractBlock('Cell', 'Cell',
+                                 '', '', labels, table, options.verbose)
+
+    # Recursively process the GeneExpression block, as it is the key defining block
+    # that is includive of everything at the GeneExpression level.
+    labels, table = extractBlock('GeneExpression', 'GeneExpression',
                                  '', '', labels, table, options.verbose)
 
     # We need to do some special processing for our ontologies. The _id field of 
@@ -373,13 +421,22 @@ if __name__ == "__main__":
             # Get the field name and generate the ontology id field name
             field = field_dict['airr']
             id_field = field + "_id"
-            id_field_tag = id_field + field_dict['ir_class']
-            #print("Ontology term %s, %s"%(field, id_field))
+            #id_field_tag = id_field + field_dict['ir_class']
+            #study.study_type.id_Repertoire_Study
+            label_base_tag = field_dict['ir_adc_api_query']
+            id_base_tag = label_base_tag.replace("label", "id")
+            id_field_tag = id_base_tag+"_"+field_dict['ir_class']+"_"+field_dict['ir_subclass']
+            if options.verbose:
+                print("$$$$ Ontology term %s, %s, %s"%(field, id_field, id_field_tag))
+                #print(table)
             # We want this field to be type string not ontology.
             field_dict['airr_type'] = 'string'
             # If the id field is in the table, update the id fields column values
+            # study.study_type.id_Repertoire_Study
+            #if id_field_tag in table:
             if id_field_tag in table:
-                #print("Ontology ID field %s"%(id_field))
+                if options.verbose:
+                    print("$$$$ Ontology ID field %s"%(id_field))
                 # Get the dictionary for the id_field
                 id_dict = table[id_field_tag]
                 # For each column in the value field, copy it to the id field. Note
