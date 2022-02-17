@@ -193,9 +193,11 @@ if __name__ == "__main__":
     valid_curie = checkOntologyLabel(options.curie, options.curie_label,
                                      ontology_iri_dict, ontology_url_dict,
                                      options.verbose)
+    # Print an exit code based on whether the test passed or failed
     if valid_curie:
         print('Valid CURIE and label: %s, %s'%(options.curie, options.curie_label))
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
-    # We are done, return success
-    sys.exit(0)
 
