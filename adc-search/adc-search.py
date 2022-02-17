@@ -16,7 +16,7 @@ def getField(dictionary, field_path, verbose):
             current_object = current_object[field_name]
             if isinstance(current_object, list):
                 if verbose:
-                    print("Warning: Processing array field, first object only", file=sys.stderr)
+                    print("Warning: Processing array field, first object only")
                 current_object = current_object[0]
 
             current_field = field_name
@@ -124,7 +124,7 @@ def generateRearrangementQuery(repertoire_id, query_dict):
     return query_with_repertoire
 
 
-def getRepertoires(repertoire_url, reperotire_dict, output_handle, verbose):
+def getRepertoires(repertoire_url, repertoire_dict, output_handle, verbose):
     # Ensure our HTTP set up has been done.
     initHTTP()
     # Get the HTTP header information (in the form of a dictionary)
