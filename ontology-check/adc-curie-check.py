@@ -230,7 +230,8 @@ def processRepository( repertoire_api, repertoire_field_df,
 
             # Get the field_object from the reperotire with the given field name
             field, field_object = getField(repertoire,row['Field'],verbose)
-            print('Checking field %s = %s'%(field, field_object))
+            if verbose:
+                print('Checking field %s = %s'%(field, field_object))
             
             # Check to see if the repertoire has the field
             if field is None or field_object is None:

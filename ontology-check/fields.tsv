@@ -1,4 +1,7 @@
 Field
 subject.species
+subject.age_unit
 subject.diagnosis.disease_diagnosis
-repertoire_id
+sample.tissue
+sample.cell_subset
+sample.cell_species
