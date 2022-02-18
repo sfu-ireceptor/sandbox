@@ -73,7 +73,7 @@ def getOntologyIRIs(verbose):
         if values['type'] == 'ontology' or values['type'] == 'taxonomy':
             ontology_iri_dict[curie] = values['map']['OBO']['iri_prefix']
             if verbose:
-                print('### %s IRI = %s'%(curie, ontology_iri_dict[curie]))
+                print('Info: %s IRI = %s'%(curie, ontology_iri_dict[curie]))
         else:
             if verbose:
                 print('Warning: Can not check %s %s using OLS'%(values['type'], curie))
@@ -108,7 +108,7 @@ def getProviderURLs(verbose):
     # Get the URL template
     ols_url_template = providers['OLS']['request']['url']
     if verbose:
-        print('### OLS url template = %s'%(ols_url_template))
+        print('Info: OLS url template = %s'%(ols_url_template))
 
     # Loop over the parameter items and build a URL for each onotology
     ontology_url_dict = {}
@@ -116,7 +116,7 @@ def getProviderURLs(verbose):
         if 'OLS' in parameter:
             ontology_url_dict[ontology] = ols_url_template.replace('{ontology_id}',parameter['OLS']['ontology_id'])
             if verbose:
-                print('### %s OLS URL = %s'%(ontology, ontology_url_dict[ontology]))
+                print('Info: %s OLS URL = %s'%(ontology, ontology_url_dict[ontology]))
         else:
             print('WARNING: Could not find an OLS parameter for %s'%(ontology))
 
@@ -157,7 +157,7 @@ def checkOntologyLabel(curie, curie_label, ontology_iri_dict, ontology_url_dict,
     query_iri = ontology_iri_dict[curie_prefix]+str(curie_value)
     query = ontology_url_dict[curie_prefix].replace('{iri}',query_iri)
     if verbose:
-        print('### Query = %s'%(query))
+        print('Info: Query = %s'%(query))
 
     # Perform the query
     response = processGetQuery(query, verbose)
@@ -168,7 +168,7 @@ def checkOntologyLabel(curie, curie_label, ontology_iri_dict, ontology_url_dict,
     for term in obo_terms:
         if term['label'] == curie_label:
             if verbose:
-                print('### CURIE MATCHES (%s, %s)'%(term['label'], curie_label))
+                print('Info: CURIE MATCHES (%s, %s)'%(term['label'], curie_label))
             return True
 
     print('ERROR: Invalid CURIE/label: %s, %s, correct label = %s'%(curie, curie_label, term['label']))
@@ -182,7 +182,7 @@ def getField(dictionary, field_path, verbose):
             current_object = current_object[field_name]
             if isinstance(current_object, list):
                 if verbose:
-                    print("Warning: Processing array field, first object only")
+                    print('Warning: Processing array field %s, first object only'%(field_name))
                 current_object = current_object[0]
 
             current_field = field_name
@@ -224,7 +224,7 @@ def processRepository( repertoire_api, repertoire_field_df,
             # Get the field_object from the reperotire with the given field name
             field, field_object = getField(repertoire,row['Field'],verbose)
             if verbose:
-                print('Checking field %s = %s'%(field, field_object))
+                print('Info: Checking field %s = %s'%(field, field_object))
             
             # Check to see if the repertoire has the field. If not then don't do
             # anything - we only report errors if it has a CURIE and it is not a 
@@ -329,8 +329,6 @@ if __name__ == "__main__":
     # Iterate over the repositories
     for index, row in repository_df.iterrows():
         print('Info: Running CURIE check on repository %s'%(row['URL']))
-        if options.verbose:
-            print("Row %d: %s"% (index, row['URL']+options.repertoire_api))
         num = processRepository(row['URL']+options.repertoire_api,
                 repertoire_field_df, ontology_iri_dict, ontology_url_dict,
                 options.verbose)
