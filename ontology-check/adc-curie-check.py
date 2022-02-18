@@ -84,8 +84,6 @@ def getOntologyIRIs(verbose):
 def getProviderURLs(verbose):
 
     block = 'InformationProvider'
-    if verbose:
-        print("#### getProviders %s\n"%(block))
     # Use the AIRR library to get an AIRR Schema block for the current block.
     provider_schema = Schema(block)
 
@@ -97,7 +95,6 @@ def getProviderURLs(verbose):
     if not 'OLS' in providers:
         print('ERROR: No OLS in the list of providers')
         return []
-    #print(providers['OLS'])
 
     # Make sure the expected OLS fields are present
     if not 'request' in providers['OLS']:
@@ -164,8 +161,6 @@ def checkOntologyLabel(curie, curie_label, ontology_iri_dict, ontology_url_dict,
 
     # Perform the query
     response = processGetQuery(query, verbose)
-    if verbose:
-        print('### Response = %s'%(response))
 
     # Process the response. OBO query repsonses have the ontology label in the field
     # _embeded.terms.label
@@ -202,8 +197,6 @@ def processRepository( repertoire_api, repertoire_field_df,
     # Perform the query. We want all repertoires so no query dictionary
     repertoire_dict = {}
     query_json = processPostQuery(repertoire_api, repertoire_dict, verbose)
-    if verbose:
-        print('INFO: Query response: ' + str(query_json))
 
     # Print out an error if the query failed.
     if query_json == None:
@@ -233,19 +226,27 @@ def processRepository( repertoire_api, repertoire_field_df,
             if verbose:
                 print('Checking field %s = %s'%(field, field_object))
             
-            # Check to see if the repertoire has the field
+            # Check to see if the repertoire has the field. If not then don't do
+            # anything - we only report errors if it has a CURIE and it is not a 
+            # valid one...
             if field is None or field_object is None:
-                print('FAIL: Could not find field %s in repertoire'%(row['Field']))
-                invalid_curies = invalid_curies + 1
+                continue
 
             # Check to see if the returned object is valid. If it is an AIRR ontology
             # it should be a dictionary object with an 'id' and 'label' field.
             valid_curie = False
             if isinstance(field_object, dict):
-                if not 'id' in field_object:
+                # Check for an empty dict object, with no id and label. This is valid 
+                # and we don't want to do anything. If we have one field and not the
+                # other it is invalid.
+                if not 'id' in field_object and not 'label' in field_object:
+                    continue
+                elif not 'id' in field_object:
                     print('FAIL: field %s does not have an ontology id'%(field))
+                    print('FAIL: field_ibject = %s'%(field_object))
                 elif not 'label' in field_object:
                     print('FAIL: field %s does not have an ontology id'%(field))
+                    print('FAIL: field_ibject = %s'%(field_object))
                 else:
                     # If it is valid, we should check to ensure that the CURIE and
                     # the label match according to the external ontology provider.
