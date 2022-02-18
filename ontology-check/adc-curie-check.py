@@ -176,7 +176,7 @@ def checkOntologyLabel(curie, curie_label, ontology_iri_dict, ontology_url_dict,
                 print('### CURIE MATCHES (%s, %s)'%(term['label'], curie_label))
             return True
 
-    print('ERROR: Invalid CURIE/label: %s, %s, correct label = %s'%(options.curie, options.curie_label, term['label']))
+    print('ERROR: Invalid CURIE/label: %s, %s, correct label = %s'%(curie, curie_label, term['label']))
     return False
 
 def getField(dictionary, field_path, verbose):
@@ -330,7 +330,7 @@ if __name__ == "__main__":
         num = processRepository(row['URL']+options.repertoire_api,
                 repertoire_field_df, ontology_iri_dict, ontology_url_dict,
                 options.verbose)
-        print('Number of things = %d'%(num))
+        print('Info: Number of invlaid CURIEs in %s = %d'%(row['URL'],num))
     valid = True
 
     # Check the value of the CURIE
