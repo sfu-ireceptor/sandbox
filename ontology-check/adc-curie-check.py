@@ -302,6 +302,7 @@ if __name__ == "__main__":
     options = getArguments()
 
     # Read in the repertoire field file
+    print('Info: Reading input files')
     if options.field_file is None:
         repertoire_field_df = pd.DataFrame([])
     else:
@@ -321,28 +322,21 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Get the IRI and URL info, both dictionaries keyed on CURIE prefix
+    print('Info: Building AIRR Spec ontology queury mappings')
     ontology_iri_dict = getOntologyIRIs(options.verbose)
     ontology_url_dict = getProviderURLs(options.verbose)
 
     # Iterate over the repositories
     for index, row in repository_df.iterrows():
+        print('Info: Running CURIE check on repository %s'%(row['URL']))
         if options.verbose:
             print("Row %d: %s"% (index, row['URL']+options.repertoire_api))
         num = processRepository(row['URL']+options.repertoire_api,
                 repertoire_field_df, ontology_iri_dict, ontology_url_dict,
                 options.verbose)
         print('Info: Number of invlaid CURIEs in %s = %d'%(row['URL'],num))
-    valid = True
 
-    # Check the value of the CURIE
-    #valid_curie = checkOntologyLabel(options.curie, options.curie_label,
-    #                                 ontology_iri_dict, ontology_url_dict,
-    #                                 options.verbose)
-    # Print an exit code based on whether the test passed or failed
-    if valid:
-        #print('Valid CURIE and label: %s, %s'%(options.curie, options.curie_label))
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    # Done
+    sys.exit(0)
 
 
