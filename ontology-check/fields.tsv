@@ -1,4 +1,5 @@
 Field
+study.study_type
 subject.species
 subject.age_unit
 subject.diagnosis.disease_diagnosis
