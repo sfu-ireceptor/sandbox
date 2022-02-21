@@ -28,3 +28,27 @@ Positional parameters:
 # Output format
 
 The ouput of the command returns a report per repertoire in each repository
+
+```
+$ python3 adc-curie-check.py repository.tsv fields.tsv
+Info: Reading input files
+Info: Building AIRR Spec ontology queury mappings
+Info: Running CURIE check on repository https://ipa1.ireceptor.org
+Info: Processing repertoire 2
+Info: Processing repertoire 5
+Info: Processing repertoire 4
+
+[Good repertoire reports delete...]
+
+Info: Processing repertoire 94
+Info: Processing repertoire 96
+ERROR: Invalid CURIE/label: DOID:0050873, small lymphocytic lymphoma, follicular lymphoma, correct label = follicular lymphoma
+Info: Processing repertoire 95
+Info: Processing repertoire 97
+Info: Processing repertoire 93
+Info: Processing repertoire 98
+Info: Processing repertoire 99
+ERROR: Invalid CURIE/label: DOID:1040, CLL/SLL, correct label = chronic lymphocytic leukemia
+Info: Processing repertoire 100
+ERROR: Invalid CURIE/label: DOID:0050873, small lymphocytic lymphoma, follicular lymphoma, correct label = follicular lymphoma
+```
