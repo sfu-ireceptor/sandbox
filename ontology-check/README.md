@@ -3,7 +3,10 @@
 The ADC ontology checking tools are designed to check the validity of ontology fields
 and their values. These checks are based on the AIRR specification and the Ontology
 definitions in the AIRR Spec are used to build the queries to determine if the ontology
-values are correct.
+values are correct. As a result it is a *requirement* that python has the AIRR python 
+package installed. Also note that for now, this requires an AIRR Library that has the
+CURIEMap and InformationProvider objects defined (likely v1.4) which is not currently 
+available through pip.
 
 The ontology checks are strict, in that they expect the CURIE of interest
 (e.g. NCBITAXON:9606) to map exactly to the ontology label for that ID (e.g. "Homo sapiens")
