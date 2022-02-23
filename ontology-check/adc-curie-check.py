@@ -3,10 +3,12 @@ import requests
 import collections
 import argparse
 import yaml
+import yamlordereddictloader
 import json
 import sys
 import airr
 import pandas as pd
+from pkg_resources import resource_stream
 from airr.schema import Schema
 
 
@@ -64,13 +66,16 @@ def processPostQuery(query_url, query_dict, verbose):
     return json_data
 
 
-def getOntologyIRIs(verbose):
-    block = 'CURIEMap'
-    # Use the AIRR library to get an AIRR Schema information for the block.
+def getOntologyIRIs(spec, verbose):
+    # Get the CUREIMap object from the spec
+    curie_schema = spec['CURIEMap']
+    # Get an empty dictionary and then iterate over the schema objects.
     ontology_iri_dict = {}
-    curie_schema = Schema(block)
-    for curie, values in curie_schema.properties.items():
+    for curie, values in curie_schema.items():
+        # We can only look up ontology and taxonomy AIRR types.
         if values['type'] == 'ontology' or values['type'] == 'taxonomy':
+            # We can only do OBO objects - all ontology/taxonomy should 
+            # have OBO objects in their mapping.
             ontology_iri_dict[curie] = values['map']['OBO']['iri_prefix']
             if verbose:
                 print('Info: %s IRI = %s'%(curie, ontology_iri_dict[curie]))
@@ -78,18 +83,18 @@ def getOntologyIRIs(verbose):
             if verbose:
                 print('Warning: Can not check %s %s using OLS'%(values['type'], curie))
 
+    # Return the dictionary with IRI's keyed by CURIE prefix
     return ontology_iri_dict
 
 
-def getProviderURLs(verbose):
+def getProviderURLs(spec, verbose):
 
-    block = 'InformationProvider'
-    # Use the AIRR library to get an AIRR Schema block for the current block.
-    provider_schema = Schema(block)
+    # Get the information provider object from the spec
+    provider_schema = spec['InformationProvider']
 
     # Get the two main objects in the schema, providers and parameters
-    providers = provider_schema.properties['provider']
-    parameters = provider_schema.properties['parameter']
+    providers = provider_schema['provider']
+    parameters = provider_schema['parameter']
 
     # Confirm that there is an OLS provider (all we support)
     if not 'OLS' in providers:
@@ -120,7 +125,7 @@ def getProviderURLs(verbose):
         else:
             print('WARNING: Could not find an OLS parameter for %s'%(ontology))
 
-    # Return a dictionary with the OLS URLs
+    # Return a dictionary with the OLS URL templates
     return ontology_url_dict
 
 def checkOntologyLabel(curie, curie_label, ontology_iri_dict, ontology_url_dict, verbose):
@@ -321,10 +326,13 @@ if __name__ == "__main__":
         print("ERROR: Unable to open file %s - %s" % (options.repository_url_file, err))
         sys.exit(1)
 
-    # Get the IRI and URL info, both dictionaries keyed on CURIE prefix
     print('Info: Building AIRR Spec ontology queury mappings')
-    ontology_iri_dict = getOntologyIRIs(options.verbose)
-    ontology_url_dict = getProviderURLs(options.verbose)
+    # Get the AIRR spec from the resource_stream named "airr"
+    with resource_stream('airr', 'specs/airr-schema.yaml') as f:
+        spec = yaml.load(f, Loader=yamlordereddictloader.Loader)
+    # Get the IRI and URL info, both dictionaries keyed on CURIE prefix
+    ontology_iri_dict = getOntologyIRIs(spec, options.verbose)
+    ontology_url_dict = getProviderURLs(spec, options.verbose)
 
     # Iterate over the repositories
     for index, row in repository_df.iterrows():
