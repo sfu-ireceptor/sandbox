@@ -5,13 +5,13 @@
 Create an AIRR cell file from either the cell_barcodes.json file from the VDJ pipeline or the barcodes.tsv file from the count pipeline:
 
 ```
-10x-vdj2cell.sh cell_barcodes.json > cells.json
-10x-count2cell.sh barcodes.tsv > cells.json
+python3 10x-vdj2cell.py cell_barcodes.json > cells.json
+python3 10x-count2cell.py barcodes.tsv > cells.json
 ```
-If using the VDJ pipeline, you typically want to run 10x-vdj2cell.sh on the cell_barcodes.json file in both the vdj_b and vdj_t directories
+If using the VDJ pipeline, you typically want to run 10x-vdj2cell.py on the cell_barcodes.json file in both the vdj_b and vdj_t directories
 This will give you two cells.json files with the t-cell and b-cell cell definitions in the two respective files.
 
-If you are using the count pipeline, you want to run 10x-count2cell.sh on the barcodes.tsv file in the count/sample_feature_bc_matrix directory.
+If you are using the count pipeline, you want to run 10x-count2cell.py on the barcodes.tsv file in the count/sample_feature_bc_matrix directory.
 
 ## Creating an AIRR GEX file
 
