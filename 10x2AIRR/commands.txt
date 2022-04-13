@@ -1,0 +1,78 @@
+# Some useful UNIX command to find things in 10X files
+# You will need to change the file names
+# These are likely specific to the 10X cellranger version, as they use
+# column numbers that are hard coded for specific fields...
+
+# Number of rearrangements for a specific clonotype
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | wc -l
+
+# This takes all of the rearrangements above prints out the cell_id, sorts them uniquely (gets a list of unique cell_ids) and then counts them.
+# So there are 46 cell_ids that are from clonotype1 - so this is AIRR's clone_count
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+
+# And this gives me the sum of the duplicate counts...
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' 'BEGIN {total=0} {total = total + $31} END {print total}'
+
+
+# B-cell clonotype rearrangement count
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | wc -l
+92
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-airr_rearrangement.tsv | grep clonotype1 | wc -l
+92
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-IGH.tsv | grep clonotype1 | wc -l
+46
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-IGK.tsv | grep clonotype1 | wc -l
+46
+
+# B-cell cell count for clonotype
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+46
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-IGH.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+46
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-IGL.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+0
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../b-cell/HC1-IGK.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+46
+
+
+# Sum of the duplicate counts
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' 'BEGIN {total=0} {total = total + $31} END {print total}'
+10853
+
+
+
+
+# Repeat for t-cells
+
+# T-cell clonotype rearrangement count
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | wc -l
+489
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../t-cell/HC1-airr_rearrangement.tsv | grep clonotype1 | wc -l
+489
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../t-cell/HC1-TRB.tsv | grep clonotype1 | wc -l
+196
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../t-cell/HC1-TRA.tsv | grep clonotype1 | wc -l
+293
+
+# T-cell cell count for clonotype
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+196
+
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../t-cell/HC1-TRA.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+195
+awk -F '\t' '/clonotype1\t/{print $0}' ../../../../t-cell/HC1-TRB.tsv | grep clonotype1 | awk -F '\t' '{print $1}' | sort -u | wc -l
+196
+
+
+# Sum of the duplicate counts
+awk -F '\t' '/clonotype1\t/{print $0}' airr_rearrangement.tsv | grep clonotype1 | awk -F '\t' 'BEGIN {total=0} {total = total + $31} END {print total}'
+2833
+
+# Get the TRA/TRB rearrangements for a specific cell
+awk -F '\t' '$2 == "clonotype1" {print $0}' ../../../../t-cell/HC1-TRA.tsv | sort -k 17 -u | grep TACGGATGTACACCGC-1 | awk '{printf ("%s, %s, %s\n", $1, $2, $8)}'
+TACGGATGTACACCGC-1, clonotype1, TRAV35
+TACGGATGTACACCGC-1, clonotype1, TRAV17
+
+awk -F '\t' '$2 == "clonotype1" {print $0}' ../../../../t-cell/HC1-TRB.tsv | sort -k 17 -u | grep TACGGATGTACACCGC-1 | awk '{printf ("%s, %s, %s\n", $1, $2, $8)}'
+TACGGATGTACACCGC-1, clonotype1, TRBV6-5
+
