@@ -4,10 +4,6 @@ import json
 import time
 import pandas as pd
 import numpy as np
-import anndata as ad
-from scipy.sparse import csr_matrix
-from scipy.sparse import lil_matrix
-
 
 # Convert AIRR Cell/GEX to 10X Cell/Gex
 def generate10X(airr_cell_file, airr_gex_file, 
