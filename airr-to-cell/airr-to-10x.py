@@ -50,6 +50,11 @@ def generate10X(airr_cell_file, airr_gex_file,
                             cell_names.append(cell['cell_id'])
                             cell_info = cell['cell_id'] + '\n'
                             file_object.write(cell_info)
+                        else:
+                            cell_names.append(cell['cell_id'] + '-dup')
+                            cell_info = cell['cell_id'] + '-dup' + '\n'
+                            file_object.write(cell_info)
+
             except Exception as e:
                 print('ERROR: Unable to write 10X barcode file  %s'%(barcode_file))
                 print('ERROR: Reason = ' + str(e))
