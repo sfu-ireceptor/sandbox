@@ -46,9 +46,10 @@ def generate10X(airr_cell_file, airr_gex_file,
             try:
                 with open(barcode_file, 'w') as file_object:
                     for cell in cell_array:
-                        cell_names.append(cell['cell_id'])
-                        cell_info = cell['cell_id'] + '\n'
-                        file_object.write(cell_info)
+                        if not cell['cell_id'] in cell_names:
+                            cell_names.append(cell['cell_id'])
+                            cell_info = cell['cell_id'] + '\n'
+                            file_object.write(cell_info)
             except Exception as e:
                 print('ERROR: Unable to write 10X barcode file  %s'%(barcode_file))
                 print('ERROR: Reason = ' + str(e))
@@ -112,7 +113,13 @@ def generate10X(airr_cell_file, airr_gex_file,
                     property_index = property_count
                 else:
                     # If we already have the property look it up to get the index.
-                    property_index = property_names.index(cell_property['property']['id'])
+                    try:
+                        property_index = property_names.index(cell_property['property']['id'])+1
+                    except Exception as e:
+                        print('ERROR: Unable to find property %s in GEX file %s - skipping...'%(airr_gex_file))
+                        print('ERROR: Reason = ' + str(e))
+                        continue
+
 
                 # Get the cell index. Since all propertyies for a cell are often loaded
                 # together we can use a cache so we don't have to look it up every time.
