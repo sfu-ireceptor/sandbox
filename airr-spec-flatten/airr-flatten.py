@@ -408,9 +408,9 @@ if __name__ == "__main__":
     labels, table = extractBlock('Cell', 'Cell',
                                  '', '', labels, table, options.verbose)
 
-    # Recursively process the GeneExpression block, as it is the key defining block
+    # Recursively process the CellExpression block, as it is the key defining block
     # that is includive of everything at the GeneExpression level.
-    labels, table = extractBlock('GeneExpression', 'GeneExpression',
+    labels, table = extractBlock('CellExpression', 'CellExpression',
                                  '', '', labels, table, options.verbose)
 
     # We need to do some special processing for our ontologies. The _id field of 

@@ -289,6 +289,7 @@ def studySummary(url, study_file, study_header, json_output, html_output, irplus
                   
                    
         time.sleep(0.5)
+
     #print(study_list_dict)
     if html_output: 
         print("<!DOCTYPE html>\n<html>\n<head>\n<style>")
