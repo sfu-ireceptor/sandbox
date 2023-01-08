@@ -205,9 +205,9 @@ def getArguments():
     parser.add_argument(
         "--service_delay",
         dest="service_delay",
-        default=0.0,
+        default=0.2,
         type=float,
-        help="The service delay to use between rearrangement queries. If we go too fast the serive may reject queries with an error. Default = 0.0"
+        help="The service delay to use between rearrangement queries. If we go too fast the serive may reject queries with an error. Default = 0.2"
     )
     # Flag to determine if AIRR Rearrangement or iR+ Stats API should be used.
     parser.add_argument(
