@@ -15,14 +15,22 @@
 import pandas as pd
 import copy
 import json
+import argparse
+
+ap = argparse.ArgumentParser()
+
+ap.add_argument("hla_file", help="path to hla file, with one row per subject")
+ap.add_argument("id_file", help="path to id file, with per sample ids")
+
+args = vars(ap.parse_args())
 
 # Specify path for hla_file and id_file
-hla_file = r'C:\Users\rj_lu\Desktop\daisy_subject_hla_full.txt'
-id_file = r'C:\Users\rj_lu\Desktop\t1d-file2.txt'
+# hla_file = r'C:\Users\rj_lu\Desktop\daisy_subject_hla_full.txt'
+# id_file = r'C:\Users\rj_lu\Desktop\t1d-file2.txt'
 
 # Read in the tsv files to data frames
-hla_df = pd.read_csv((hla_file), sep="\t")
-id_df = pd.read_csv((id_file), sep="\t")
+hla_df = pd.read_csv(args["hla_file"], sep="\t")
+id_df = pd.read_csv(args["id_file"], sep="\t")
 
 # Define lists for mhc1 and mhc2 genes, based on the tsv headers
 mhc_class_1_list = ['A_1', 'A_2', 'B_1', 'B_2', 'C_1', 'C_2']
@@ -169,14 +177,27 @@ for id_ind, id_row in id_df.iterrows():
             repertoire_top_dict = {}
             repertoire_top_dict["Repertoire"] = repertoire_list
 
-            # print(repertoire_top_dict)
+            print(repertoire_top_dict)
 
             # create the output file
-            with open(str(subject) + "_" + str(sample_id) + "_mhc_genotype.json", "w") as outfile:
-                json.dump(repertoire_top_dict, outfile) # dump the repertoire top object to outfile, in json format
+            # with open(str(subject) + "_" + str(sample_id) + "_mhc_genotype.json", "w") as outfile:
+            #     json.dump(repertoire_top_dict, outfile) # dump the repertoire top object to outfile, in json format
 
-
-
-
+# def getArguments():
+#     # Set up the command line parser
+#     parser = argparse.ArgumentParser(
+#         formatter_class=argparse.RawDescriptionHelpFormatter,
+#         description=""
+#     )
+#     parser = argparse.ArgumentParser()
+#
+#     # The hla file name
+#     parser.add_argument("hla_file")
+#     # The id file name
+#     parser.add_argument("id_file")
+#
+# if __name__ == "__main__":
+#     # Get the command line arguments.
+#     options = getArguments()
 
 
