@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ $# -ne 1 ] && [ $# -ne 2 ];
+then
+    echo "usage: $0 system_id [path]"
+    exit 1
+fi
+
+# Check for optional path
+if [ -z "$2" ];
+then
+	path=""
+else
+	path=$2
+fi
+
+# Get the file list
+curl -s -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/files/ops/$1/${path} | python3 -m json.tool
+

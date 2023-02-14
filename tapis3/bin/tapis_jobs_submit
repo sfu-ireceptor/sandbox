@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -ne 1 ];
+then
+    echo "usage: $0 job.json"
+    exit 1
+fi
+
+# submit a job
+curl -s -X POST -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/jobs/submit -d @$1 | python3 -m json.tool
+

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+curl -H "X-Tapis-Token: $JWT" https://ireceptor.tapis.io/v3/systems?select=allAttributes

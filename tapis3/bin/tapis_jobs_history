@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -ne 1 ];
+then
+    echo "usage: $0 job_uuid"
+    exit 1
+fi
+
+# Get info about a job
+curl -s -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/jobs/$1/history | python3 -m json.tool
+

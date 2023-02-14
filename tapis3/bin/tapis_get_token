@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -ne 1 ];
+then
+    echo "usage: $0 username"
+    exit 1
+fi
+
+read -p "password: " -s password
+echo ""
+curl -H "Content-type: application/json" -d "{\"username\": \"$1\", \"password\": \"${password}\", \"grant_type\": \"password\" }" https://ireceptor.tapis.io/v3/oauth2/tokens
