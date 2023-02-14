@@ -1,0 +1,33 @@
+{
+	"id": "cedar.computecanada.ca-compute-ireceptorgw2", 
+       	"description": "iReceptor compute resource on Compute Canada cedar ARC platform",
+       	"host": "cedar.computecanada.ca",
+       	"systemType": "LINUX",
+	"defaultAuthnMethod":"PKI_KEYS",
+	"effectiveUserId":"ireceptorgw",
+       	"rootDir":"/",
+       	"canExec": true,
+	"canRunBatch": true,
+	"mpiCmd": "string",
+	"jobRuntimes": [ { "runtimeType": "SINGULARITY" } ],
+	"jobWorkingDir": "HOST_EVAL($SCRATCH)",
+	"jobMaxJobs": 12000,
+	"jobMaxJobsPerUser": -1,
+  	"batchScheduler": "SLURM",
+        "batchDefaultLogicalQueue": "default",
+	"batchLogicalQueues": [
+    		{
+		    "name": "default",
+      		    "hpcQueueName": "default",
+                    "maxJobsPerUser": 16,
+      		    "minNodeCount": 1,
+      		    "maxNodeCount": 1,
+      	            "minCoresPerNode": 1,
+      		    "maxCoresPerNode": 128,
+		    "minMemoryMB": 1,
+		    "maxMemoryMB": 16384,
+		    "minMinutes": 1,
+		    "maxMinutes": 5760
+		}
+	]
+}
