@@ -1,0 +1,16 @@
+{
+    "name": "singularity-celltypist-bcorrie-job",
+    "appId": "singularity-celltypist-bcorrie",
+    "appVersion": "0.1",
+    "execSystemId": "cedar.computecanada.ca-compute-ireceptorgw2",
+    "parameterSet": {
+        "containerArgs": [
+            {"arg":"--cleanenv"},
+            {"arg":"-B /scratch:/scratch"}
+	],
+        "appArgs": [
+	    {"arg": "ls"},
+            {"arg": "/scratch/ireceptorgw" }
+        ]
+    }
+}
