@@ -1,0 +1,13 @@
+{
+  "id":"singularity-celltypist-bcorrie",
+  "version":"0.1",
+  "description":"My sample celltypist application",
+  "runtime":"SINGULARITY",
+  "runtimeOptions": ["SINGULARITY_RUN"],
+  "containerImage":"/scratch/ireceptorgw/singularity/celltypist/celltypist-1.0.0.sif",
+  "jobType":"BATCH",
+  "jobAttributes": {
+    "description": "default job description",
+    "execSystemId": "cedar.computecanada.ca-compute-bcorrie2"
+  }
+}
