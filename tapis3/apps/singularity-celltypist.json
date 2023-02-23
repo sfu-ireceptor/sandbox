@@ -1,5 +1,5 @@
 {
-    "id":"singularity-celltypist-bcorrie",
+    "id":"singularity-celltypist-irec_analysis",
     "version":"0.1",
     "description":"My sample celltypist application",
     "runtime":"SINGULARITY",
@@ -8,20 +8,19 @@
     "jobType":"BATCH",
     "jobAttributes": {
       "description": "default job description",
-      "execSystemId": "cedar.computecanada.ca-compute-bcorrie2",
+      "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
       "parameterSet": {
         "containerArgs": [
-            {"arg":"--cleanenv"},
-            {"arg":"-B /scratch:/scratch -B /project:/project"}
+            {"name":"cleanenv", "arg":"--cleanenv"},
+            {"name":"volumes", "arg":"-B /scratch:/scratch -B /project:/project"}
         ],
         "appArgs": [
-	    {"name": "program", "arg" : "app.sh"},
-            {"name": "ir_singularity", "arg": "/scratch/ireceptorgw/singularity/celltypist/celltypist-1.0.0.sif"}
+	    {"name": "program", "arg" : "bash /project/6008066/ireceptor/src/gateway/resources/agave_apps/cell-celltypist-singularity/app3.sh"}
         ],
         "envVariables": [
-	    "ir_singularity=/scratch/ireceptorgw/singularity/celltypist/celltypist-1.0.0.sif",
-	    "ir_gateway_url=https://gateway-analysis-dev/",
-	    "download_file=gateway_download.zip"
+	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/celltypist/celltypist-1.0.0.sif"},
+	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
+	    {"key":"download_file","value":"gateway_download.zip"}
 	]
       }
     }
