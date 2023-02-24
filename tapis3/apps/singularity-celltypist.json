@@ -11,8 +11,9 @@
       "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
       "parameterSet": {
         "containerArgs": [
-            {"name":"cleanenv", "arg":"--cleanenv"},
-            {"name":"volumes", "arg":"-B /scratch:/scratch -B /project:/project"}
+            {"name":"cleanenv", "arg":"--cleanenv", "inputMode": "FIXED"},
+            {"name":"scratch", "arg":"--bind /scratch:/scratch", "inputMode": "FIXED"},
+            {"name":"project", "arg":"--bind /project:/project", "inputMode": "FIXED"}
         ],
         "appArgs": [
 	    {"name": "program", "arg" : "bash /project/6008066/ireceptor/src/gateway/resources/agave_apps/cell-celltypist-singularity/app3.sh"}
