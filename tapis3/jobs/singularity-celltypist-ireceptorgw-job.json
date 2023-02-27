@@ -5,12 +5,18 @@
     "execSystemId": "cedar.computecanada.ca-compute-ireceptorgw2",
     "parameterSet": {
         "containerArgs": [
-            {"arg":"--cleanenv"},
-            {"arg":"-B /scratch:/scratch"}
-	],
+            {"name":"cleanenv", "arg":"--cleanenv"},
+            {"name":"scratch_mount", "arg":"-B /scratch:/scratch "},
+            {"name":"project_mount", "arg":"-B /project:/project"}
+        ],
         "appArgs": [
-	    {"arg": "ls"},
-            {"arg": "/scratch/ireceptorgw" }
+            {"name": "program", "arg" : "bash /project/6008066/ireceptor/src/gateway/resources/agave_apps/cell-celltypist-singularity/app3.sh"}
+        ],
+        "envVariables": [
+            {"key": "singularity_image","value":"/scratch/ireceptorgw/singularity/celltypist/celltypist-1.0.0.sif"},
+            {"key":"ir_gateway_url","value":"https://gateway-analysis-dev.ireceptor.org/"},
+            {"key":"download_file","value":"/scratch/ireceptorgw/test/ir_2022-08-28_2112_630bda358edb3.zip"},
+            {"key":"gateway_util_dir","value":"/project/6008066/ireceptor/src/gateway/public/gateway_utilities"}
         ]
     }
 }
