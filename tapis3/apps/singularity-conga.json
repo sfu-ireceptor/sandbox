@@ -1,0 +1,28 @@
+{
+    "id":"singularity-conga-irec_analysis",
+    "version":"0.1",
+    "description":"My sample conga application",
+    "runtime":"SINGULARITY",
+    "runtimeOptions": ["SINGULARITY_RUN"],
+    "containerImage":"/scratch/ireceptorgw/singularity/conga/ir_conga-2023-02-27.sif",
+    "jobType":"BATCH",
+    "jobAttributes": {
+      "description": "default job description",
+      "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
+      "parameterSet": {
+        "containerArgs": [
+            {"name":"project_mount", "inputMode": "FIXED", "arg":"-B /project:/project"},
+            {"name":"scratch_mount", "inputMode": "FIXED", "arg":"-B /scratch:/scratch"}
+        ],
+        "appArgs": [
+	    {"name": "program", "arg" : "bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/cell-conga-singularity/app3.sh"}
+        ],
+        "envVariables": [
+	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/conga/ir_conga-2023-02-27.sif"},
+	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
+	    {"key":"download_file","value":"gateway_download.zip"}
+	]
+      }
+    }
+
+}

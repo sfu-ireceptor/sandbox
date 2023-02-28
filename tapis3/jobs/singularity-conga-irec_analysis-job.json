@@ -1,0 +1,21 @@
+{
+    "name": "singularity-conga-irec_analysis-job",
+    "appId": "singularity-conga-irec_analysis",
+    "appVersion": "0.1",
+    "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
+    "memoryMB":4096,
+    "maxMinutes":60,
+    "parameterSet": {
+        "containerArgs": [
+        ],
+        "appArgs": [
+            {"name": "program", "arg" : "bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/cell-conga-singularity/app3.sh"}
+        ],
+        "envVariables": [
+            {"key": "singularity_image","value":"/scratch/ireceptorgw/singularity/conga/ir_conga-2023-02-27.sif"},
+            {"key":"ir_gateway_url","value":"https://gateway-analysis-dev.ireceptor.org/"},
+            {"key":"download_file","value":"/scratch/ireceptorgw/test/ir_2022-08-28_2112_630bda358edb3.zip"},
+            {"key":"gateway_util_dir","value":"/scratch/ireceptorgw/src/gateway/public/gateway_utilities"}
+        ]
+    }
+}
