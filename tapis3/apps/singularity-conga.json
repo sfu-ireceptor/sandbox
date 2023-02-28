@@ -4,7 +4,7 @@
     "description":"My sample conga application",
     "runtime":"SINGULARITY",
     "runtimeOptions": ["SINGULARITY_RUN"],
-    "containerImage":"/scratch/ireceptorgw/singularity/conga/ir_conga-2023-02-27.sif",
+    "containerImage":"/scratch/ireceptorgw/singularity/conga/ir_conga-ireceptor.sif",
     "jobType":"BATCH",
     "jobAttributes": {
       "description": "default job description",
@@ -18,7 +18,8 @@
 	    {"name": "program", "arg" : "bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/cell-conga-singularity/app3.sh"}
         ],
         "envVariables": [
-	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/conga/ir_conga-2023-02-27.sif"},
+	    {"key": "PYTHONNOUSERSITE","value":"1"},
+	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/conga/ir_conga-ireceptor.sif"},
 	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
 	    {"key":"download_file","value":"gateway_download.zip"}
 	]
