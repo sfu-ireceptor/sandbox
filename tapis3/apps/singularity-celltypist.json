@@ -18,6 +18,7 @@
 	    {"name": "program", "arg" : "bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/cell-celltypist-singularity/app3.sh"}
         ],
         "envVariables": [
+            {"key": "PYTHONNOUSERSITE","value":"1"},
 	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/celltypist/ir_celltypist-1.1.0.sif"},
 	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
 	    {"key":"download_file","value":"gateway_download.zip"}
