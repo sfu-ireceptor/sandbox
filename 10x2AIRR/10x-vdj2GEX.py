@@ -6,7 +6,7 @@ import numpy as np
 
 
 # process GEX data from the 10X files provided.
-def processVDJGEX(b_t_cell_file, cell_file, feature_file, matrix_file, verbose):
+def processVDJGEX(b_t_cell_file, cell_file, feature_file, matrix_file, drop_file, verbose):
     # Open the b_cell or t_cell JSON file.
     try:
         with open(b_t_cell_file) as f:
@@ -55,10 +55,24 @@ def processVDJGEX(b_t_cell_file, cell_file, feature_file, matrix_file, verbose):
     if verbose:
         print(matrix_df)
 
+    # Read in the Cell drop list.
+    drop_cell_list = []
+    if not drop_file is None:
+        try:
+            drop_cell_df = pd.read_csv(drop_file, sep=',', header=None)
+            drop_cell_list = drop_cell_df[0].tolist()
+        except Exception as e:
+            print('ERROR: Unable to read Cell drop file %s'%(drop_file))
+            print('ERROR: Reason =' + str(e))
+            return False
+        if verbose:
+            print(drop_cell_df, file=sys.stderr)
+
     # Iterate over the file 
     print("[")
     num_rows = len(matrix_df.index)
     cell_count = 0
+    dropped_dict = dict()
     for ind in matrix_df.index:
         # Get the cell bar code we are processing (matrix element 1)
         cell_index = matrix_df[1][ind]
@@ -66,8 +80,17 @@ def processVDJGEX(b_t_cell_file, cell_file, feature_file, matrix_file, verbose):
         cell = cell_df[0][cell_index-1]
 
         # Check to see if the barcode is in the B/T cell list, if so process it,
-        # if not skip it.
-        if cell in cell_dict:
+        # if not skip it. Check to see if the barcode is in the drop file, if it
+        # is skip it. Keep track of how many cells and GEX entries per cell
+        # are dropped cell.
+        if cell in drop_cell_list:
+            if not cell in dropped_dict:
+                dropped_dict[cell] = 0
+                print('Dropping cell %s'%(cell), file=sys.stderr)
+            else:
+                dropped_dict[cell] = dropped_dict[cell] + 1
+
+        if cell in cell_dict and not cell in drop_cell_list:
             cell_count += 1
             # Get the gene index (matrix element 0)
             gene_index = matrix_df[0][ind]
@@ -118,6 +141,14 @@ def getArguments():
     parser.add_argument("feature_file")
     # The repertoire_id to summarize
     parser.add_argument("matrix_file")
+    # File to use that includes a list of cell_id's to drop
+    parser.add_argument(
+        "--drop-cells",
+        dest="drop_cell_file",
+        default=None,
+        help="Name of the file that contains a list of cell_id's that should be ignored."
+    )
+
     # Verbosity flag
     parser.add_argument(
         "-v",
@@ -143,7 +174,7 @@ if __name__ == "__main__":
     # and the third column is the count of the number of times that feature was found
     # for that cell.
     success = processVDJGEX(options.b_t_cell_file, options.cell_file, options.feature_file,
-                         options.matrix_file, options.verbose)
+                            options.matrix_file, options.drop_cell_file, options.verbose)
 
     # Return success if successful
     if not success:
