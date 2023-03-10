@@ -1,0 +1,29 @@
+{
+    "id":"singularity-immunarch-irec_analysis",
+    "version":"0.1",
+    "description":"My sample Immunarch application",
+    "runtime":"SINGULARITY",
+    "runtimeOptions": ["SINGULARITY_RUN"],
+    "containerImage":"/scratch/ireceptorgw/singularity/immunarch/ir_immunarch-0.6.9.sif",
+    "jobType":"BATCH",
+    "jobAttributes": {
+      "description": "default job description",
+      "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
+      "parameterSet": {
+        "containerArgs": [
+            {"name":"project_mount", "inputMode": "FIXED", "arg":"-B /project:/project"},
+            {"name":"scratch_mount", "inputMode": "FIXED", "arg":"-B /scratch:/scratch"}
+        ],
+        "appArgs": [
+	    {"name": "program", "arg" : "bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/immunarch-singularity/app3.sh"}
+        ],
+        "envVariables": [
+            {"key": "PYTHONNOUSERSITE","value":"1"},
+	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/immunarch/ir_immunarch-0.6.9.sif"},
+	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
+	    {"key":"download_file","value":"gateway_download.zip"}
+	]
+      }
+    }
+
+}
