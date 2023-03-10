@@ -1,0 +1,33 @@
+{
+    "id":"singularity-histogram-irec_analysis",
+    "version":"0.1",
+    "description":"My sample histogram application",
+    "runtime":"SINGULARITY",
+    "runtimeOptions": ["SINGULARITY_RUN"],
+    "containerImage":"/scratch/ireceptorgw/singularity/histogram/ir_histogram-4.0.0.sif",
+    "jobType":"BATCH",
+    "jobAttributes": {
+      "description": "default job description",
+      "execSystemId": "cedar.computecanada.ca-compute-irec_analysis",
+      "parameterSet": {
+        "containerArgs": [
+            {"name":"project_mount", "inputMode": "FIXED", "arg":"-B /project:/project"},
+            {"name":"scratch_mount", "inputMode": "FIXED", "arg":"-B /scratch:/scratch"}
+        ],
+        "appArgs": [
+	    {"name":"program", "arg":"bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/histogram/app3.sh"},
+	    {"name":"split_repertoire", "arg":"True", "inputMode":"REQUIRED"},
+	    {"name":"variable", "arg":"junction_aa", "inputMode":"REQUIRED"},
+	    {"name":"num_values", "arg":"40", "inputMode":"REQUIRED"},
+	    {"name":"sort_values", "arg":"True", "inputMode":"REQUIRED"}
+        ],
+        "envVariables": [
+            {"key": "PYTHONNOUSERSITE","value":"1"},
+	    {"key": "ir_singularity","value":"/scratch/ireceptorgw/singularity/histogram/ir_historgram-4.0.0.sif"},
+	    {"key":"ir_gateway_url","value":"https://gateway-analysis-dev/"},
+	    {"key":"download_file","value":"gateway_download.zip"}
+	]
+      }
+    }
+
+}
