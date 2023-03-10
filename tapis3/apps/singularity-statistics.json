@@ -15,7 +15,7 @@
             {"name":"scratch_mount", "inputMode": "FIXED", "arg":"-B /scratch:/scratch"}
         ],
         "appArgs": [
-            {"name":"program", "arg":"bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/histogram/app3.sh", "inputMode":"FIXED"},
+            {"name":"program", "arg":"bash /scratch/ireceptorgw/src/gateway/resources/agave_apps/stats/app3.sh", "inputMode":"FIXED"},
 	    {"name":"split_repertoire", "arg":"True", "inputMode":"REQUIRED"}
         ],
         "envVariables": [
