@@ -269,9 +269,22 @@ def processField(field, field_spec, block, required_fields, field_path,
                     label = 'airr_'+k
                     if not label in labels:
                         labels.append(label)
-                    # Handle the enum case, where we join the enum fields so
+                    # Handle the enum case, where we concatenante the enum fields so
                     # we can track them.
-                    value = ','.join(v) 
+                    value = ''
+                    enum_len = len(v)
+                    count = 0
+                    # Iterate over the enum values and add them to a string.
+                    for enum_val in v:
+                        if count > 0: 
+                            # We need to handle none as this is now a possible
+                            # enum value.
+                            if enum_val is None:
+                                enum_val = 'null'
+                            value = value + ',' + enum_val
+                        else:
+                            value = enum_val
+                        count = count + 1
                     field_dict[label] = value
                 elif k == 'properties':
                     if verbose:
@@ -411,6 +424,16 @@ if __name__ == "__main__":
     # Recursively process the CellExpression block, as it is the key defining block
     # that is includive of everything at the GeneExpression level.
     labels, table = extractBlock('CellExpression', 'CellExpression',
+                                 '', '', labels, table, options.verbose)
+
+    # Recursively process the Receptor block, as it is the key defining block
+    # that is includive of everything at the Receptor level.
+    labels, table = extractBlock('Receptor', 'Receptor',
+                                 '', '', labels, table, options.verbose)
+
+    # Recursively process the ReceptorReactivity block, as it is the key defining block
+    # that is includive of everything at the ReceptorReactivity level.
+    labels, table = extractBlock('ReceptorReactivity', 'ReceptorReactivity',
                                  '', '', labels, table, options.verbose)
 
     # We need to do some special processing for our ontologies. The _id field of 
