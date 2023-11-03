@@ -42,24 +42,27 @@ def processVDJCell(cell_file, drop_cell_file, verbose):
     num_cells = len(cell_dict)
     count = 0
     total_count = 0
+    total_dropped = 0
     # For each cell in the input file
     for cell in cell_dict:
         # Check if it should be dropped - if not process it.
         if not cell in drop_cell_list:
-            # If we are processing the last cell, don't output the separator.
-            if total_count == num_cells-1:
-                separator = ''
-            # Print a line for the cell.
-            print('{"cell_id":"%s", %s}%s'%(cell,  the_rest, separator))
+            # Only print separator if we have had a valid line
+            if count > 0:
+                print(separator)
+            print('{"cell_id":"%s", %s}'%(cell,  the_rest),end='')
             count = count + 1
         else:
-            print('Dropping cell %s'%(cell), file=sys.stderr)
+            if verbose:
+                print('Dropping cell %s'%(cell), file=sys.stderr)
+            total_dropped = total_dropped + 1
         total_count = total_count + 1
     # End of JSON array.
-    print("]")
+    print("\n]")
 
     if verbose:
         print("Number of cells = %d"%(count), file=sys.stderr)
+        print("Number of cells dropped = %d"%(total_dropped), file=sys.stderr)
 
     return True
 
