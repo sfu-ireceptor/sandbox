@@ -98,6 +98,11 @@ def processField(field, field_spec, block, required_fields, field_path,
             # specifications in a custom x-airr object. This custom object has things
             # about the MiAIRR standard and the ADC API. We have to handle both.
 
+            # All fields are by defauly nullable so we set xairr_nullable here.
+            field_dict['airr_nullable'] = True
+            # Make sure it is in the labels.
+            if not 'airr_nullable' in labels:
+                labels.append('airr_nullable')
             # Handle the x-airr schema objects
             if k == 'x-airr':
                 # Iterated over the x-airr schema objects.
@@ -129,6 +134,11 @@ def processField(field, field_spec, block, required_fields, field_path,
                             #field_dict[label] = True
                         else:
                             print("Warning: Invalid x_airr:miairr field %s"%(xairr_v))
+                    # AIRR nullable is by default true, so we set overwrite the default
+                    # if we get a value here.
+                    elif xairr_k == 'nullable':
+                        if xairr_v == False:
+                            field_dict['airr_nullable'] = False
                     else:
                         # If it is a string value, we want to clean it up, in case
                         # there is some extra white space...
