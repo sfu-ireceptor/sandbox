@@ -49,6 +49,14 @@ def getArguments():
         help="The ADC API query operation to use, either '=' or 'contains'."
     )
 
+    # Facet field to use
+    parser.add_argument(
+        "--facet_field",
+        dest="facet_field",
+        default="repertoire_id",
+        help="The ADC API field to facet/count on (default 'repertoire_id')"
+    )
+
 
     # Parse the command line arguements.
     options = parser.parse_args()
@@ -121,6 +129,6 @@ if __name__ == "__main__":
 
     # If generating an ADC API query, generate the footer of the query.
     if not options.generate_list:
-        print('] }, "facets":"repertoire_id" }', file=output_handle)
+        print('] }, "facets":"%s" }'%(options.facet_field), file=output_handle)
 
     sys.exit(0)
