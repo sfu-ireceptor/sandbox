@@ -1,4 +1,5 @@
 import requests
+import certifi
 import pandas as pd
 import numpy as np
 import argparse
@@ -16,7 +17,7 @@ def getField(dictionary, field_path, verbose):
             current_object = current_object[field_name]
             if isinstance(current_object, list):
                 if verbose:
-                    print("Warning: Processing array field, first object only")
+                    print("Warning: Processing array field %s, first object only"%(field_name))
                 current_object = current_object[0]
 
             current_field = field_name
@@ -42,6 +43,8 @@ def performRearrangementQuery(rearrangement_url, repertoires, rearrangement_dict
             continue
 
         count = count + 1
+        if verbose:
+            print('Processing %d'%(count))
 
         repertoire_info = dict()
         for index, row in repertoire_field_df.iterrows():
@@ -137,20 +140,20 @@ def getRepertoires(repertoire_url, repertoire_dict, output_handle, verbose):
     if verbose:
         print('INFO: Query response: ' + str(query_json))
 
-    # Print out an error if the query failed.
+    # Print out an error if the query failed, return empty list if error
     if query_json == None:
         print('ERROR: Query %s failed to %s'%(query_json, repertoire_url))
-        return None
+        return []
 
-    # Check for a correct Info object.
+    # Check for a correct Info object, return empty list if error
     if not "Info" in query_json:
         print("ERROR: Expected to find an 'Info' object, none found")
-        return None
+        return []
 
-    # Check for a valid Repertoire object
+    # Check for a valid Repertoire object, return empty list if error
     if not "Repertoire" in query_json:
         print("ERROR: Expected to find an 'Repertoire' object, none found")
-        return None
+        return []
 
     repertoire_list = query_json['Repertoire']
 
