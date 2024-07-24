@@ -47,6 +47,7 @@ if __name__ == "__main__":
     else:
         try:
             output_handle = open(options.output_file, "w")
+            print("Output file = %s"%(options.output_file))
         except Exception as err:
             print("ERROR: Unable to open output file %s - %s" % (options.output_file, err))
             sys.exit(1)
@@ -71,7 +72,8 @@ if __name__ == "__main__":
     for index, row in repertoire_field_df.iterrows():
        columns.append(row["Fields"])
     analysis_df = pd.DataFrame(columns=columns)
-    print("Empty Dataframe ", analysis_df, sep='\n')
+    print("Empty analysis Dataframe ", analysis_df, sep='\n')
+    print("Done")
 
     for repository_dict in analysis_dict:
         repository = repository_dict["repository"]
@@ -91,6 +93,9 @@ if __name__ == "__main__":
                     record_dict[field] = repertoire_info[field]
 
             print("Record = " + str(record_dict))
-            analysis_df = analysis_df.append(record_dict, ignore_index=True)
+            #analysis_df = analysis_df.append(record_dict, ignore_index=True)
+            #analysis_df = pd.concat([analysis_df, pd.DataFrame([record_dict])], ignore_index=True)
+            #analysis_df = pd.concat([analysis_df, pd.DataFrame([record_dict])])
+            analysis_df.iloc[-1] = record_dict
     print("Dataframe ", analysis_df, sep='\n')
     analysis_df.to_csv(output_handle, sep='\t',index=False)
