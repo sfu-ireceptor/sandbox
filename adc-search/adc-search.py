@@ -1,4 +1,5 @@
 import requests
+import urllib
 import certifi
 import pandas as pd
 import numpy as np
@@ -26,17 +27,22 @@ def getField(dictionary, field_path, verbose):
 
     return current_field, current_object
 
-def performRearrangementQuery(rearrangement_url, repertoires, rearrangement_dict, repertoire_field_df, output_handle, service_delay, verbose):
+def performRearrangementQuery(rearrangement_url, repertoires,
+        rearrangement_dict, repertoire_field_df,
+        output_handle, output_directory, output_format,
+        service_delay, verbose):
 
     count = 0
     total = len(repertoires)
     print("Info: Processing %d repertoires from %s" %(total,rearrangement_url))
-    print("{\n\"repository\":\"%s\",\n\"results\":["%(rearrangement_url), file=output_handle)
+    if output_format == "JSON":
+        print("{\n\"repository\":\"%s\",\n\"results\":["%(rearrangement_url), file=output_handle)
+
     t_start = time.perf_counter()
     for repertoire in repertoires:
         repertoire_id = repertoire['repertoire_id']
         query_dict = generateRearrangementQuery(repertoire_id, rearrangement_dict)
-        query_response = processQuery(rearrangement_url, query_dict, verbose)
+        query_response = processQuery(rearrangement_url, query_dict, output_format, verbose)
         # Print out an error if the query failed.
         if query_response == None:
             print('ERROR: Query %s failed to %s'%(query_dict, rearrangement_url))
@@ -46,49 +52,82 @@ def performRearrangementQuery(rearrangement_url, repertoires, rearrangement_dict
         if verbose:
             print('Processing %d'%(count))
 
-        repertoire_info = dict()
-        for index, row in repertoire_field_df.iterrows():
-            field, value = getField(repertoire, row[0], verbose)
-            if not field == None:
-                repertoire_info[row[0]] = value
-                #print("\"%s\":\"%s\","%(field, value), file=output_handle)
-        query_response["Repertoire"] = repertoire_info
-        print("%s"%(json.dumps(query_response, indent = 4)), file=output_handle)
-        if count < total:
-            print(",", file=output_handle)
+        if output_format == "JSON":
+            repertoire_info = dict()
+            for index, row in repertoire_field_df.iterrows():
+                field, value = getField(repertoire, row[0], verbose)
+                if not field == None:
+                    repertoire_info[row[0]] = value
+                    #print("\"%s\":\"%s\","%(field, value), file=output_handle)
+            query_response["Repertoire"] = repertoire_info
+            print("%s"%(json.dumps(query_response, indent = 4)), file=output_handle)
+            if count < total:
+                print(",", file=output_handle)
+        else:
+
+            if len(query_response.splitlines()) > 1:
+                url_info = urllib.parse.urlparse(rearrangement_url)
+                filename = url_info.netloc + '_' + repertoire_id + '.tsv'
+                try:
+                    tsv_handle = open(output_dir + filename, "w")
+                except Exception as err:
+                    print("ERROR: Unable to open output file %s - %s" %
+                          (filename, err))
+                    sys.exit(1)
+                print("%s"%(query_response), file=tsv_handle)
+                tsv_handle.close()
+
+                print("repository", end='', file=output_handle)
+                for index, row in repertoire_field_df.iterrows():
+                    field, value = getField(repertoire, row[0], verbose)
+                    if not field == None:
+                        print("\t%s"%(row[0]), end='', file=output_handle)
+                print("", file=output_handle)
+
+                print(url_info.netloc, end='', file=output_handle)
+                for index, row in repertoire_field_df.iterrows():
+                    field, value = getField(repertoire, row[0], verbose)
+                    if not field == None:
+                        print("\t%s"%(value), end='', file=output_handle)
+                print("", file=output_handle)
+
         time.sleep(service_delay)
 
     
-    print("]\n}", file=output_handle, flush=True)
+    if output_format == "JSON":
+        print("]\n}", file=output_handle, flush=True)
     t_end = time.perf_counter()
     print("Info: Performed %d queries in %f s, %f queries/s" %
           (count, t_end - t_start, count/(t_end - t_start)))
 
-def processQuery(query_url, query_dict, verbose):
+def processQuery(query_url, query_dict, output_format, verbose):
 
     # Do a post request
     url_response = requests.post(query_url, json=query_dict)
 
-    # Get the JSON data as a dictionary.
-    try:
-        json_data = url_response.json()
-    except json.decoder.JSONDecodeError as error:
-        print("ERROR: Unable to process JSON response: " + str(error))
-        print("ERROR: Status code = %s"%(url_response.status_code))
-        print("ERROR: Reason = %s"%(url_response.reason))
-        if verbose:
-            print("ERROR: Query = " + str(query_dict))
-        return None
-    except Exception as error:
-        print("ERROR: Unable to process JSON response: " + str(error))
-        print("ERROR: Status code = %s"%(url_response.status_code))
-        print("ERROR: Reason = %s"%(url_response.reason))
-        if verbose:
-            print("ERROR: Query = " + str(query_dict))
-        return None
+    if output_format == "JSON":
+        # Get the JSON data as a dictionary.
+        try:
+            json_data = url_response.json()
+        except json.decoder.JSONDecodeError as error:
+            print("ERROR: Unable to process JSON response: " + str(error))
+            print("ERROR: Status code = %s"%(url_response.status_code))
+            print("ERROR: Reason = %s"%(url_response.reason))
+            if verbose:
+                print("ERROR: Query = " + str(query_dict))
+            return None
+        except Exception as error:
+            print("ERROR: Unable to process JSON response: " + str(error))
+            print("ERROR: Status code = %s"%(url_response.status_code))
+            print("ERROR: Reason = %s"%(url_response.reason))
+            if verbose:
+                print("ERROR: Query = " + str(query_dict))
+            return None
 
-    # Return the JSON data
-    return json_data
+        # Return the JSON data
+        return json_data
+    else:
+        return url_response.content.decode('utf-8')
 
 def getHeaderDict():
     # Set up the header for the post request.
@@ -133,12 +172,12 @@ def getRepertoires(repertoire_url, repertoire_dict, output_handle, verbose):
     # Get the HTTP header information (in the form of a dictionary)
     header_dict = getHeaderDict()
 
-    if verbose:
-        print('INFO: Query: ' + str(repertoire_dict))
+    #if verbose:
+    #    print('INFO: Query: ' + str(repertoire_dict))
     # Perform the query.
-    query_json = processQuery(repertoire_url, repertoire_dict, verbose)
-    if verbose:
-        print('INFO: Query response: ' + str(query_json))
+    query_json = processQuery(repertoire_url, repertoire_dict, "JSON", verbose)
+    #if verbose:
+    #    print('INFO: Query response: ' + str(query_json))
 
     # Print out an error if the query failed, return empty list if error
     if query_json == None:
@@ -194,12 +233,26 @@ def getArguments():
         default=None,
         help="File that contains a list of AIRR fields in dot notation (subject.subject_id). These fields are output in every repertoire query output in a 'Repertoire' object. If no file is provided then an empty repertoire object is created."
     )
-    # Output file
+    # Output file.
     parser.add_argument(
         "--output_file",
         dest="output_file",
         default=None,
         help="The output file to use. If none supplied, uses stdout."
+    )
+    # Output directory. Used only if TSV output is chosen.
+    parser.add_argument(
+        "--output_dir",
+        dest="output_dir",
+        default="",
+        help="The output directory to use. Should have a trailing slash if a path is provided."
+    )
+    # Output format
+    parser.add_argument(
+        "--output_format",
+        dest="output_format",
+        default="JSON",
+        help="The output format to use. If none supplied, uses JSON."
     )
 
     # Choose a time delay between repertoire queries. This is so we can be nice
@@ -233,15 +286,33 @@ if __name__ == "__main__":
     # Get the command line arguments.
     options = getArguments()
 
-    # Get the output file handle
+    # Check the file output format options, it should be either
+    # JSON or TSV.
+    if options.output_format != "JSON" and options.output_format != "TSV":
+        print("ERROR: Invalid output format %s, should be JSON or TSV"%(options.output_format, err))
+        sys.exit(1)
+
+    # Get the output information. If JSON output, everything goes in
+    # the JSON file. If TSV output, repertoire info goes in the JSON
+    # file and the TSV data goes in a file per repertoire in the
+    # output_dir.
     if options.output_file == None:
         output_handle = sys.stdout
     else:
         try:
             output_handle = open(options.output_file, "w")
         except Exception as err:
-            print("ERROR: Unable to open output file %s - %s" % (options.output_file, err))
+            print("ERROR: Unable to open output file %s - %s" %
+                  (options.output_file, err))
             sys.exit(1)
+    if options.output_format == "TSV":
+        output_dir = options.output_dir
+        if not os.path.isdir(output_dir):
+            print("ERROR: %s is not a directory" % (output_dir))
+            sys.exit(1)
+    else:
+        output_dir = None
+
 
     # Read in the repertoire field file
     if options.field_file is None:
@@ -277,7 +348,8 @@ if __name__ == "__main__":
         print("Rearrangement query = %s"%(rearrangement_json))
 
     repo_count = 0
-    print("[", file=output_handle)
+    if options.output_format == "JSON":
+        print("[", file=output_handle)
     number_repos = len(repository_df.index)
     for index, row in repository_df.iterrows():
         if options.verbose:
@@ -287,13 +359,16 @@ if __name__ == "__main__":
 
         if not repertoires == None:
             performRearrangementQuery(row['URL']+options.rearrangement_api,
-                    repertoires, rearrangement_dict, repertoire_field_df, output_handle,
+                    repertoires, rearrangement_dict, repertoire_field_df,
+                    output_handle, output_dir, options.output_format,
                     options.service_delay, options.verbose)
         repo_count = repo_count+1
-        if repo_count < number_repos:
-            print(",", file=output_handle)
+        if options.output_format == "JSON":
+            if repo_count < number_repos:
+                print(",", file=output_handle)
 
-    print("]", file=output_handle)
+    if options.output_format == "JSON":
+        print("]", file=output_handle)
     #if not success:
     #    sys.exit(1)
 
