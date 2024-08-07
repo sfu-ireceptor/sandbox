@@ -65,7 +65,20 @@ def performRearrangementQuery(rearrangement_url, repertoires,
                 print(",", file=output_handle)
         else:
 
-            if len(query_response.splitlines()) > 1:
+            # We only want to output a file if there is some data.
+            # Get the lines. Note this is not memory efficient for large files.
+            lines = query_response.splitlines()
+
+            # We want to remove empty lines at the end. Some repositories return
+            # empty lines (VDJServer does).
+            index = len(lines) - 1
+            # Traverse the list in reverse until we find a non-empty line
+            while index >= 0 and lines[index].strip() == '':
+                index -= 1
+            # Remove the n empty lines at the end of the file.
+            lines = lines[:index + 1]
+
+            if len(lines) > 1:
                 url_info = urllib.parse.urlparse(rearrangement_url)
                 filename = url_info.netloc + '_' + repertoire_id + '.tsv'
                 try:
