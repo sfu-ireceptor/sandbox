@@ -73,7 +73,8 @@ The output from this query can be found [output_one_repertoire.json](output_one_
 # Utility scripts
 
 Two utility scripts are provided, integrating queries across both the AIRR Data Commons and the
-[Immune Epitope Database](http://iedb.org).
+[Immune Epitope Database](http://iedb.org). These utility scripts make extensive use of
+adc_search.py to perform complicated queries across the ADC.
 
 ## Receptor report
 
