@@ -54,6 +54,7 @@ This command searches the COVID 19 repositories [repository-covid19.tsv](reposit
 This query is essentially searching the iReceptor COVID19 data (a substantial portion of the ADC) for the public CDR3 motif that was found in the paper from Shomuradov et al. [SARS-CoV-2 Epitopes Are Recognized by a Public and Diverse Repertoire of Human T Cell Receptors](https://doi.org/10.1016/j.immuni.2020.11.004).
 
 # Example Output
+
 The output from the following very basic query of a single repertoire is given as follows:
 
 ```
@@ -68,3 +69,53 @@ Info: Processing 0 repertoires from http://covid19-4.ireceptor.org/airr/v1/rearr
 Info: Performed 0 queries in 0.000004 s, 0.000000 queries/s
 ```
 The output from this query can be found [output_one_repertoire.json](output_one_repertoire.json). In this case, the repertoire_id of interest is found in only one repository and the JSON response contains a count of the number of CDR3s of interest in that reperotire as well as the requested repertoire metadata.
+
+# Utility scripts
+
+Two utility scripts are provided, integrating queries across both the AIRR Data Commons and the
+[Immune Epitope Database](http://iedb.org).
+
+## Receptor report
+
+receptor-report.sh takes similar input files for repositories, repertoire query, and repertoire fields
+to display, but it also take a Junction, a V gene, a J gene, and optionally an Epitope. 
+
+```
+$ ./receptor_report.sh
+Usage: ./receptor_report.sh REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV JUNCTION VGENE JGENE [EPITOPE]
+```
+The ADC part of the output is generated as follows:
+- The ADC repositories in `REPOSITORY_TSV` are searched using the `REPERTOTOIRE_QUERY_JSON`
+- For each Repertoire found, the repertoire is searched for an exact match of the given
+"Receptor Chain" given by `JUNCTION VGENE JGENE`
+- The output includes:
+  - The full JSON response of the query as sent to adc_search.py
+  - A TSV file for each repertoire with the rearrangements for the chain.
+  - A summary of the number of instances discovered and the number of repertoires in which the receptor chain was found is written to `report.out`. 
+
+The IEDB part of he output is generated as follows:
+- The `JUNCTION` is searched for in IEDB
+  - The Junction is searched for in IEDB in both Chain1 and Chain2 for both BCR and TCR receptors
+  - The CDR3 is computed (leading and trailing AAs are dropped) and is searched for in IEDB in both Chain1 and Chain2 for both BCR and TCR receptors
+  - The full JSON respsonse from the above queries are returned (8 files)
+  - A summary of the information from IEDB is written to `report.out` that includes any epitope specificity found for the "Receptor Chain".
+- If provided, the `EPITOPE` is also searched ofr in IEDB
+  - The full JSON response of the epitope query is provided
+  - A summary of the epitope information in IEDB is provided in `report.out`
+
+## Run Receptor Reports
+
+run_receptor_reports.sh is a utility script the runs `receptor_report.sh` many times, once per "Receptor Chain"
+that is included in an input Receptor file. 
+
+```
+$ bash run_receptor_reports.sh
+Usage: run_receptor_reports.sh RECEPTOR_TSV REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV
+```
+
+Similar to `receptor_report.sh` it takes a `REPOSITORY_TSV` file that determines the repositories it
+searches, a `REPERTOIRE_QUERY_JSON` file that has the repertoire query to perform, and a `REPERTOIRE_FIELD_TSV`
+file that determines the fields of interest. Rather than run on a single "Receptor Chain" it takes as input
+a TSV file with three columns that contain the Junction AA string, the V gene, and the J gene. 
+
+Alternately, you can use `run_receptore_epitope_reports.sh` which does the same thing but generates the Epitope report from `receptor_report.sh`. The TSV file in this case should contain a fourth column that contains the Epitope AA string.
