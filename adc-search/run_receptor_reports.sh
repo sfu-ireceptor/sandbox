@@ -36,12 +36,12 @@ if [ ! -f "$REPERTOIRE_FIELD_TSV" ]; then
 fi
 
 # Read the TSV file line by line and get the four columns
-while IFS=$'\t' read -r cdr3 vgene jgene epitope; do
+while IFS=$'\t' read -r cdr3 vgene jgene; do
     # Call the receptor_report script with the four column values
     # as parameters to generate a report for each receptor
-    echo -n "Running report for $cdr3 $vgene $jgene $epitope at "
+    echo -n "Running report for $cdr3 $vgene $jgene at "
     date
-    ${SCRIPT_DIR}/receptor_report.sh "$cdr3" "$vgene" "$jgene" "$epitope" "$REPOSITORY_TSV" "$REPERTOIRE_QUERY_JSON" "$REPERTOIRE_FIELD_TSV"
+    ${SCRIPT_DIR}/receptor_report.sh "$REPOSITORY_TSV" "$REPERTOIRE_QUERY_JSON" "$REPERTOIRE_FIELD_TSV" "$cdr3" "$vgene" "$jgene" 
 done < "$RECEPTOR_TSV"
 echo -n "Finished processing at "
 date
