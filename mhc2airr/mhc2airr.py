@@ -180,8 +180,8 @@ for id_ind, id_row in id_df.iterrows():
             print(repertoire_top_dict)
 
             # create the output file
-            # with open(str(subject) + "_" + str(sample_id) + "_mhc_genotype.json", "w") as outfile:
-            #     json.dump(repertoire_top_dict, outfile) # dump the repertoire top object to outfile, in json format
+            with open(str(subject) + "_" + str(sample_id) + "_mhc_genotype.json", "w") as outfile:
+            	json.dump(repertoire_top_dict, outfile) # dump the repertoire top object to outfile, in json format
 
 # def getArguments():
 #     # Set up the command line parser
