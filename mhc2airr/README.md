@@ -5,8 +5,8 @@ the AIRR Data commons.
 
 This code takes two TSV files, a per subject set of HLA alleles and
 a per repertoire set of ID information, and generates a JSON file that
-can be used with the iReceptor Turnkey to update the subject level
-metadata in a repository.
+can be used with the [iReceptor Turnkey](https://github.com/sfu-ireceptor/turnkey-service-php)
+to update the subject level metadata in a repository.
 
 
 ## Repertoire processing
