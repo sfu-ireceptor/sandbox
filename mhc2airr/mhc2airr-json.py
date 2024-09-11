@@ -20,17 +20,7 @@ import copy
 import json
 import argparse
 
-
-
-# Get the arguments.
-#ap = argparse.ArgumentParser()
-
-#ap.add_argument("hla_file", help="path to hla file, with one row per subject")
-#ap.add_argument("id_file", help="path to id file, with per sample ids")
-#ap.add_argument("output_dir", help="Path to write output files to")
-
-#args = vars(ap.parse_args())
-
+# Process the MHC data provided
 def processMHC(mhc_path, id_path, output_dir):
     # Read in the tsv files to data frames
     mhc_df = pd.read_csv(mhc_path, sep="\t")
