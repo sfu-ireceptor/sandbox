@@ -44,6 +44,12 @@ class II genes (DRB1_1, DRB1_2, DQA1_1, DQA1_2, DQB1_1, DQB1_2,
 DPA1_1, DPA1_2, DPB1_1, DPB1_2). See the example HLA file in this
 github repository.
 
+This data in this file, per repertoire, should match the data that is
+retrieved using the following query:
+```
+curl -s -d '{"filters":{"op":"=","content":{"field":"study.study_id","value":"IR-T1D-000002"}},"fields":["subject.subject_id","repertoire_id","sample.sample_processing_id","data_processing.data_processing_id","data_processing.data_processing_files", "subject.genotype"]}' https://t1d-2.ireceptor.org/airr/v1/repertoire
+```
+
 ## Generate the AIRR JSON update files, one per repertoire.
 ```
 mkdir output
