@@ -41,7 +41,8 @@ The file should gave columns with headers as follows: a column
 subject_id, a column mhc_genotyping_method, and columns for the
 relevant mhc class I genes (A_1, A_2, B_1, B_2, C_1, C_2) and/or
 class II genes (DRB1_1, DRB1_2, DQA1_1, DQA1_2, DQB1_1, DQB1_2,
-DPA1_1, DPA1_2, DPB1_1, DPB1_2)
+DPA1_1, DPA1_2, DPB1_1, DPB1_2). See the example HLA file in this
+github repository.
 
 ## Generate the AIRR JSON update files, one per repertoire.
 ```
@@ -52,9 +53,9 @@ python3 mhc2airr-json.py Kent-HLA.tsv Kent-Repertoires.tsv output
 ## Load the data
 
 Load the data into an AIRR repository, assuming you have access
-to the repository directly, you can then run the iReceptor Turnkey
+to the repository directly. You can run the iReceptor Turnkey
 update_metadata script on each file generated to update the subject
-MHC.
+MHC for each repertoire in the repository.
 ```
 update_metadata.sh repertoire output/XXX.json
 ```
