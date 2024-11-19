@@ -5,4 +5,8 @@ study.study_title
 subject.diagnosis.disease_diagnosis.label
 subject.subject_id
 sample.sample_id
+sample.cell_subset.label
 sample.pcr_target.pcr_target_locus
+sample.collection_time_point_reference
+sample.collection_time_point_relative
+sample.collection_time_point_relative_unit.label
