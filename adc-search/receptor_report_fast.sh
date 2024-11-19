@@ -2,8 +2,8 @@
 
 
 # Check if a file is provided as an argument
-if [ $# -lt 6 ]; then
-    echo "Usage: $0 REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV JUNCTION VGENE JGENE [EPITOPE]"
+if [ $# -lt 8 ]; then
+    echo "Usage: $0 REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV JUNCTION VGENE JGENE OUTPUT_DIR SUMMARY_FILE [EPITOPE]"
     exit 1
 fi
 
@@ -18,15 +18,19 @@ JUNCTION=$4
 VGENE=$5
 JGENE=$6
 
+# Expect a summary file name to put high level statistics
+OUTPUT_BASE_DIR=$7
+SUMMARY_FILE=$8
+
 # Sometimes we need the CDR3, so compute it if from the Junction
 CDR3=${JUNCTION:1:-1}
 
 # Store in the output directory named for the JUNCTION
-if [ $# -eq 6 ]; then
-  OUTPUT_DIR="${JUNCTION}_${VGENE}_${JGENE}"
+if [ $# -eq 8 ]; then
+  OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}"
 else
-  EPITOPE=$7
-  OUTPUT_DIR="${JUNCTION}_${VGENE}_${JGENE}_${EPITOPE}"
+  EPITOPE=$9
+  OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}_${EPITOPE}"
 fi
 REPORT_FILE=$OUTPUT_DIR/report.out
 
@@ -107,8 +111,12 @@ tail -n +2 ${REPOSITORY_TSV} | while IFS=$'\t' read -r repository other_columns;
         echo "$repository	$OUTPUT_DIR	sequences/repertoires	$COUNT	$REPERTOIRES" >> $REPORT_FILE
         echo "" >> $REPORT_FILE
 
+	# Add a line to the summary file
+        echo "$repository	$OUTPUT_DIR	sequences/repertoires	$COUNT	$REPERTOIRES" >> $OUTPUT_BASE_DIR/$SUMMARY_FILE
+
         echo "Found $COUNT receptors in $num_repertoires repertoires in $repository"
 	
+	# If we got some results, download them
         if [ $COUNT -ne 0 ]; then
             # Generate the filter to download the receptor chain
 
