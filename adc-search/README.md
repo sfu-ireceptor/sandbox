@@ -79,7 +79,7 @@ adc_search.py to perform complicated queries across the ADC.
 ## Receptor report
 
 receptor-report.sh takes similar input files for repositories, repertoire query, and repertoire fields
-to display, but it also take a Junction, a V gene, a J gene, and optionally an Epitope. 
+to display, but it also take a Junction, a V gene, a J gene. 
 
 ```
 $ ./receptor_report_fast.sh
