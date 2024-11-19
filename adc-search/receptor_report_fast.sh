@@ -3,7 +3,7 @@
 
 # Check if a file is provided as an argument
 if [ $# -lt 8 ]; then
-    echo "Usage: $0 REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV JUNCTION VGENE JGENE OUTPUT_DIR SUMMARY_FILE [EPITOPE]"
+    echo "Usage: $0 REPOSITORY_TSV REPERTOIRE_QUERY_JSON REPERTOIRE_FIELD_TSV JUNCTION VGENE JGENE OUTPUT_DIR SUMMARY_FILE"
     exit 1
 fi
 
@@ -26,12 +26,7 @@ SUMMARY_FILE=$8
 CDR3=${JUNCTION:1:-1}
 
 # Store in the output directory named for the JUNCTION
-if [ $# -eq 8 ]; then
-  OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}"
-else
-  EPITOPE=$9
-  OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}_${EPITOPE}"
-fi
+OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}"
 REPORT_FILE=$OUTPUT_DIR/report.out
 
 # Get the directory of the current script
