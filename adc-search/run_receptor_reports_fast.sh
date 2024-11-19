@@ -66,3 +66,5 @@ done < "$RECEPTOR_TSV"
 
 echo -n "Finished processing at "
 date
+echo -n "Report finished at: " >> $OUTPUT_DIR/$SUMMARY_FILE
+date >> $OUTPUT_DIR/$SUMMARY_FILE
