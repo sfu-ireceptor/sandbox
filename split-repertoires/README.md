@@ -19,8 +19,9 @@ the iReceptor Gateway, but it will work fine on any AIRR tsv Rearrangement file.
 If you want to map a file name from the above to information about that repertoire,
 it is possible to extract information about the repertoire using `jq` to find
 different field values. For example, for data from a Repertoire with repetoire_id =
-5efbc71e5f94cb6215deecbe you extract the subject and sample info from a iReceptor
-Gateway download with metadata file `airr-covid-19-metadata.json` with the following:
+5efbc71e5f94cb6215deecbe (with data stored in out_dir/5efbc71e5f94cb6215deecbe.tsv) 
+you extract the subject and sample info from the iReceptor
+Gateway download metadata file `airr-covid-19-metadata.json` with the following:
 
 ```
 $ jq '.Repertoire[] | select(.repertoire_id == "5efbc71e5f94cb6215deecbe") | {repertoire_id, sample_id: .sample[].sample_id, locus: .sample[].pcr_target[].pcr_target_locus}' airr-covid-19-metadata.json
