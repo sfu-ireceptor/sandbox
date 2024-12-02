@@ -61,10 +61,17 @@ while IFS=$'\t' read -r cdr3 vgene jgene; do
     # as parameters to generate a report for each receptor
     echo -n "Running report for $cdr3 $vgene $jgene at "
     date
+    
+    echo "" >> $OUTPUT_DIR/$SUMMARY_FILE
+    echo -n "Running report for $cdr3 $vgene $jgene at " >> $OUTPUT_DIR/$SUMMARY_FILE
+    date >> $OUTPUT_DIR/$SUMMARY_FILE
+
     ${SCRIPT_DIR}/receptor_report_fast.sh "$REPOSITORY_TSV" "$REPERTOIRE_QUERY_JSON" "$REPERTOIRE_FIELD_TSV" "$cdr3" "$vgene" "$jgene" "$OUTPUT_DIR" "$SUMMARY_FILE"
 done < "$RECEPTOR_TSV"
 
 echo -n "Finished processing at "
 date
+
+echo "" >> $OUTPUT_DIR/$SUMMARY_FILE
 echo -n "Report finished at: " >> $OUTPUT_DIR/$SUMMARY_FILE
 date >> $OUTPUT_DIR/$SUMMARY_FILE
