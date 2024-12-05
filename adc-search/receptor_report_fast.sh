@@ -44,9 +44,7 @@ mkdir -p $OUTPUT_DIR
 mkdir -p $HITS_DIR
 mkdir -p $MISSES_DIR
 
-# Set up the repertoire query file name.
-JSON_QUERY_FILE=$OUTPUT_DIR/$BASE_RECEPTOR_STR.json
-
+# Generate some log output
 echo "Performing search for $1 $2 $3 $4" > $REPORT_FILE
 echo -n "Starting query at: " >> $REPORT_FILE
 date >> $REPORT_FILE
@@ -139,12 +137,20 @@ tail -n +2 ${REPOSITORY_TSV} | while IFS=$'\t' read -r repository other_columns;
             date >> $REPORT_FILE
             curl -H 'content-type: application/json' -k -s -d @${JSON_QUERY_FILE} ${repository}/airr/v1/rearrangement \
 		    > ${OUTPUT_DIR}/rearrangement-${domain_name}-${BASE_RECEPTOR_STR}.tsv
+
+	    # Say we are done...
             echo -n "Done download at: " >> $REPORT_FILE
             date >> $REPORT_FILE
 	fi
+	# Remove the JSON query file, it can be large.
+	rm ${JSON_QUERY_FILE}
     else
         echo "Found 0 receptors in $num_repertoires repertoires in $repository"
     fi
+
+    # Remove some JSON files, they are no longer needed as we keep the TSV file
+    # and it can be quite large for large repositories.
+    rm $OUTPUT_DIR/repertoires-${domain_name}-$BASE_RECEPTOR_STR.json 
 
 done 
 
@@ -160,11 +166,16 @@ date >> $REPORT_FILE
 #
 # So we look for a number at the end of the line that is non-zero.
 TOTAL=`egrep "[1-9][0-9]*$" $REPORT_FILE | grep "sequences/repertoires" | wc -l`
-echo "Total = $TOTAL"
 if [ $TOTAL -ne 0 ]; then
    mv $OUTPUT_DIR $HITS_DIR
    echo "Found receptors for $OUTPUT_DIR"
+   echo ""
 else
-   mv $OUTPUT_DIR $MISSES_DIR
+   echo "No receptors for $OUTPUT_DIR, zipping"
+   echo ""
+   zip -q $OUTPUT_DIR.zip $OUTPUT_DIR/*
+   rm -f $OUTPUT_DIR/*
+   rmdir $OUTPUT_DIR
+   mv $OUTPUT_DIR.zip $MISSES_DIR
 fi
 
