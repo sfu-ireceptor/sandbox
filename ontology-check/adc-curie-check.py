@@ -5,6 +5,7 @@ import argparse
 import yaml
 import yamlordereddictloader
 import json
+import os, ssl
 import sys
 import airr
 import pandas as pd
@@ -302,9 +303,19 @@ def getArguments():
     options = parser.parse_args()
     return options
 
+def initHTTP():
+    # Deafult OS do not have create cient certificate bundles. It is
+    # easiest for us to ignore HTTPS certificate errors in this case.
+    if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
+        getattr(ssl, '_create_unverified_context', None)):
+        ssl._create_default_https_context = ssl._create_unverified_context
+
 if __name__ == "__main__":
     # Get the command line arguments.
     options = getArguments()
+
+    # Init HTTP
+    initHTTP()
 
     # Read in the repertoire field file
     print('Info: Reading input files')
