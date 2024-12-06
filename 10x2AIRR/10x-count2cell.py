@@ -6,7 +6,7 @@ import numpy as np
 
 
 # process Cell data from the 10X cell file provided.
-def processCountCell(cell_file, verbose):
+def processCountCell(cell_file, skip_header, verbose):
     # Open the cell file.
     try:
         with open(cell_file) as f:
@@ -27,12 +27,18 @@ def processCountCell(cell_file, verbose):
     # Each row in the file has a cell barcode.
     print("[")
     num_cells = cell_df.shape[0]
+    # If we have a header, we have one less cell.
+    if skip_header:
+        num_cells = num_cells - 1
     count = 0
     for index, row in cell_df.iterrows():
-        if count == num_cells-1:
-            separator = ''
-        print('{"cell_id":"%s", %s}%s'%(row[0],  the_rest, separator))
-        count = count + 1
+        # Skip the header line if requested
+        if skip_header and index > 0:
+            # Handle the last line, no trailing comma
+            if count == num_cells-1:
+                separator = ''
+            print('{"cell_id":"%s", %s}%s'%(row[0],  the_rest, separator))
+            count = count + 1
     print("]")
 
     if verbose:
@@ -56,6 +62,12 @@ def getArguments():
         "--verbose",
         action="store_true",
         help="Run the program in verbose mode.")
+    # Add flag for skipping header
+    parser.add_argument(
+        "-s",
+        "--skip_header",
+        action="store_true",
+        help="Skip the header line in the file.")
 
     # Parse the command line arguements.
     options = parser.parse_args()
@@ -68,7 +80,7 @@ if __name__ == "__main__":
 
     # Process and produce a AIRR Cell file from the 10X Count pipeline. This uses the
     # standard 10X barcodes.txv to determine which cells are b or t-cells
-    success = processCountCell(options.cell_file, options.verbose)
+    success = processCountCell(options.cell_file, options.skip_header, options.verbose)
 
     # Return success if successful
     if not success:
