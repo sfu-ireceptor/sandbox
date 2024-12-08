@@ -165,11 +165,12 @@ def processMHC(mhc_path, id_path, output_dir):
             sample_dict = {}
             # Look up the sample_processing_id value in col == "sample_processing_id", in id_df
             sample_dict["sample_processing_id"] = id_df.loc[id_ind,"sample_processing_id"] 
-            # Define sample_id, which we include in the output file name
-            data_processing_files = []
-            # Look up the data_processing_files, as above
-            data_processing_files.append(id_df.loc[id_ind,"data_processing_files"]) 
-
+            
+            # Look up the data_processing_files, as above. Because data_processing_files is
+            # an array of file names, we split the string value in the TSV file on "," and
+            # store it as an array.
+            data_processing_files_str = id_df.loc[id_ind,"data_processing_files"]
+            data_processing_files = data_processing_files_str.split(",")
             # Make the data_processing object, which includes the list of data_processing_files
             data_processing_dict = {}
             # Look up the data_processing_id, as above
