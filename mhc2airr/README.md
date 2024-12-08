@@ -31,7 +31,7 @@ using a JSON query to the appropriate ADC repository (t1d-2). We use
 jq to process the JSON and output the fields to the file in TSV format.
 
 ```
-curl -s -d '{"filters":{"op":"=","content":{"field":"study.study_id","value":"IR-T1D-000002"}},"fields":["subject.subject_id","repertoire_id","sample.sample_processing_id","data_processing.data_processing_id","data_processing.data_processing_files"]}' https://t1d-2.ireceptor.org/airr/v1/repertoire | jq --raw-output '.Repertoire[] | [.subject.subject_id, .repertoire_id, .data_processing[].data_processing_id, .sample[].sample_processing_id, .data_processing[].data_processing_files[]] | @tsv' >> Kent-Repertoires.tsv
+curl -s -d '{"filters":{"op":"=","content":{"field":"study.study_id","value":"IR-T1D-000002"}},"fields":["subject.subject_id","repertoire_id","sample.sample_processing_id","data_processing.data_processing_id","data_processing.data_processing_files"]}' https://t1d-2.ireceptor.org/airr/v1/repertoire | jq --raw-output '.Repertoire[] | [.subject.subject_id, .repertoire_id, .data_processing[].data_processing_id, .sample[].sample_processing_id, .data_processing[].data_processing_files | if type == "array" then join(", ") else . end] | @tsv' >> Kent-Repertoires.tsv
 ```
 
 ## HLA Processing
