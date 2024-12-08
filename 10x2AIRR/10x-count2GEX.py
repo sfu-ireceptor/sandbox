@@ -6,7 +6,7 @@ import numpy as np
 
 
 # process GEX data from the 10X files provided.
-def processGEX(cell_file, feature_file, matrix_file, verbose):
+def processGEX(cell_file, feature_file, matrix_file, skip_mtx_header, verbose):
     # Open the cell file.
     try:
         with open(cell_file) as f:
@@ -35,7 +35,10 @@ def processGEX(cell_file, feature_file, matrix_file, verbose):
         with open(matrix_file) as f:
             #matrix_df_reader = pd.read_csv(f, sep=' ', chunksize=chunk_size)
             #matrix_df = pd.read_csv(f, sep=' ', header=[0,1,2])
-            matrix_df = pd.read_csv(f, sep=' ', header=None)
+            if skip_mtx_header:
+                matrix_df = pd.read_csv(f, sep=' ', skiprows=1, header=None)
+            else:
+                matrix_df = pd.read_csv(f, sep=' ', header=None)
     except Exception as e:
         print('ERROR: Unable to read matrix file %s'%(matrix_file))
         print('ERROR: Reason =' + str(e))
@@ -49,7 +52,7 @@ def processGEX(cell_file, feature_file, matrix_file, verbose):
         #total_records += chunk_size
         #print("Read %d records"%(total_records))
     print("[")
-    num_rows = len(matrix_df.index)
+    max_index = len(matrix_df.index)-1
     for ind in matrix_df.index:
         gene_index = matrix_df[0][ind]
         cell_index = matrix_df[1][ind]
@@ -60,12 +63,12 @@ def processGEX(cell_file, feature_file, matrix_file, verbose):
 
         cell = cell_df[0][cell_index-1]
 
-        if ind != num_rows:
-            seperator = ','
+        if ind < max_index:
+            separator = ','
         else:
             separator = ' '
         print('{"cell_id":"%s", "property":"%s", "ir_property_label_expression":"%s", "value":"%s"}%s'%
-                (cell, gene_id, gene_label, level, seperator))
+                (cell, gene_id, gene_label, level, separator))
     print("]")
 
     return True
@@ -90,6 +93,12 @@ def getArguments():
         "--verbose",
         action="store_true",
         help="Run the program in verbose mode.")
+    # Skip header flag
+    parser.add_argument(
+        "-s",
+        "--skip_mtx_header",
+        action="store_true",
+        help="Skip the header line in the matrix file.")
 
     # Parse the command line arguements.
     options = parser.parse_args()
@@ -107,7 +116,7 @@ if __name__ == "__main__":
     # into the barcodes.tsv file, and the third column is the count of the number of
     # times that feature was found for that cell.
     success = processGEX(options.cell_file, options.feature_file,
-                         options.matrix_file, options.verbose)
+                         options.matrix_file, options.skip_mtx_header, options.verbose)
 
     # Return success if successful
     if not success:
