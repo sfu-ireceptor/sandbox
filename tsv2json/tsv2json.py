@@ -6,8 +6,16 @@ import csv
 def convert(value):
     # Try to convert strings
     if type(value) is str and len(value) > 0:
-        # If it looks like it might be JSON string, try to convert
         if value[0] == '{' and value[-1] == '}':
+            # If it looks like it might be JSON string, try to convert
+            try:
+                # If successful, return it
+                return json.loads(value)
+            except:
+                # If conversion fails, return original
+                return value
+        elif value[0] == '[' and value[-1] == ']':
+            # If it looks like it might be JSON array, try to convert
             try:
                 # If successful, return it
                 return json.loads(value)
