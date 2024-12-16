@@ -29,7 +29,9 @@ Optional arguments:
 - --field_file=field_filename.tsv: Query responses by default only contain the reperotire_id and the information that is requested from the rearrangement-query.json. This is not particularly helpful in that you don't know any details about the repertoire (study/subject/sample metadata). The field file allows you to ask for a set of repertoire metadata fields to be added to the search output. These fields are specified using the field "dot" notation that is used to specify fields in the ADC API (e.g. study.study_id). The file should contain a column with a "Field" column header.
 - -v: run in verbose mode, providing potentially useful output for debugging when things don't work as epxected.
 - --service_delay=N: The above command can easily generate thousands of queries. Some web services have a throttling mechanism where they begin to return error messages (Too many requests) if they are bombarded by too many queries. This is to prevent Denial of Service attacks. In some cases it may be necessary to use a service delay to throttle the queries sent to the repositories.
+- --output_format=[JSON|TSV]: By default the query responses from the repositories are printed in JSON format as they list stats per repertoire. If you want to download the rearrangements per repertoire to a TSV file, use the TSV output format. If you want you can redirect the JSON output to a file of your choice and the TSV repertoire output to a set of files in an output directory of your choice.
 - --output_file=output_filename.json: By default the query responses from the repositories are printed to stdout. If you want you can redirect the output to a file of your choice.
+- --output_dir=output_directory: By default the query responses from the repositories are printed to stdout. If you want you can redirect the output to a directory of choice. This only applies to the TSV file format. 
 
 # Output format
 
