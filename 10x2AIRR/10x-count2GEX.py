@@ -6,7 +6,8 @@ import numpy as np
 
 
 # process GEX data from the 10X files provided.
-def processGEX(cell_file, feature_file, matrix_file, skip_mtx_header, verbose):
+def processGEX(cell_file, feature_file, matrix_file,
+               skip_mtx_header, ensembl_only, verbose):
     # Open the cell file.
     try:
         with open(cell_file) as f:
@@ -53,6 +54,7 @@ def processGEX(cell_file, feature_file, matrix_file, skip_mtx_header, verbose):
         #print("Read %d records"%(total_records))
     print("[")
     max_index = len(matrix_df.index)-1
+    gex_count = 0
     for ind in matrix_df.index:
         gene_index = matrix_df[0][ind]
         cell_index = matrix_df[1][ind]
@@ -63,12 +65,28 @@ def processGEX(cell_file, feature_file, matrix_file, skip_mtx_header, verbose):
 
         cell = cell_df[0][cell_index-1]
 
-        if ind < max_index:
-            separator = ','
+        gex_count = gex_count + 1
+
+        if gene_id[:4] == "ENSG":
+            # We don't print a JSON separator or new line on each line (which is what we want for
+            # the last line). So if we are processing any but the first line, we want to print
+            # out the separator needed for the previous line. This means the last line won't have
+            # a comma separator but all other will.
+            if gex_count > 1:
+                print(',')
+            print('{"cell_id":"%s", "property":{"id":"ENSG:%s", "label":"%s"}, "value":%d}'%
+                  (cell, gene_id, gene_label, level),end='')
         else:
-            separator = ' '
-        print('{"cell_id":"%s", "property":"%s", "ir_property_label_expression":"%s", "value":"%s"}%s'%
-                (cell, gene_id, gene_label, level, separator))
+            if not ensembl_only:
+                # We don't print a JSON separator or new line on each line (which is what we want for
+                # the last line). So if we are processing any but the first line, we want to print
+                # out the separator needed for the previous line. This means the last line won't have
+                # a comma separator but all other will.
+                if gex_count > 1:
+                    print(',')
+                print('{"cell_id":"%s", "property":{"id":"%s", "label":"%s"}, "value":%d}'%
+                  (cell, gene_id, gene_label, level),end='')
+
     print("]")
 
     return True
@@ -99,6 +117,12 @@ def getArguments():
         "--skip_mtx_header",
         action="store_true",
         help="Skip the header line in the matrix file.")
+    # Only process Ensembl IDs
+    parser.add_argument(
+        "-e",
+        "--ensembl_only",
+        action="store_true",
+        help="Only process GEX that are Ensembl IDs (with an ID that starts wiht ENSG).")
 
     # Parse the command line arguements.
     options = parser.parse_args()
@@ -116,7 +140,8 @@ if __name__ == "__main__":
     # into the barcodes.tsv file, and the third column is the count of the number of
     # times that feature was found for that cell.
     success = processGEX(options.cell_file, options.feature_file,
-                         options.matrix_file, options.skip_mtx_header, options.verbose)
+                         options.matrix_file, options.skip_mtx_header,
+                         options.ensembl_only, options.verbose)
 
     # Return success if successful
     if not success:
