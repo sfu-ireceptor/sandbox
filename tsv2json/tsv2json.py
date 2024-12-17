@@ -3,42 +3,49 @@ import argparse
 import json
 import csv
 
-def convert(value):
+def convert(key, value, dict_fields):
     # Try to convert strings
-    if type(value) is str and len(value) > 0:
-        if value[0] == '{' and value[-1] == '}':
-            # If it looks like it might be JSON string, try to convert
-            try:
-                # If successful, return it
-                return json.loads(value)
-            except:
-                # If conversion fails, return original
-                return value
-        elif value[0] == '[' and value[-1] == ']':
-            # If it looks like it might be JSON array, try to convert
-            try:
-                # If successful, return it
-                return json.loads(value)
-            except:
-                # If conversion fails, return original
-                return value
+    if type(value) is str:
+        if len(value) > 0:
+            if value[0] == '{' and value[-1] == '}':
+                # If it looks like it might be JSON string, try to convert
+                try:
+                    # If successful, return it
+                    return json.loads(value)
+                except:
+                    # If conversion fails, return original
+                    return value
+            elif value[0] == '[' and value[-1] == ']':
+                # If it looks like it might be JSON array, try to convert
+                try:
+                    # If successful, return it
+                    return json.loads(value)
+                except:
+                    # If conversion fails, return original
+                    return value
+            else:
+                try:
+                    # Try to convert to int first.
+                    if '.' not in value:
+                        return int(value)
+                    # If the value has a decimal point, try converting to a float
+                    return float(value)
+                except ValueError:
+                    # If conversion fails, return the original string
+                    return value
         else:
-            try:
-                # Try to convert to int first.
-                if '.' not in value:
-                    return int(value)
-                # If the value has a decimal point, try converting to a float
-                return float(value)
-            except ValueError:
-                # If conversion fails, return the original string
-                return value
+            # Zero length string, handle special case for dictionary fields if specified.
+            # If in the list, we want to return an empty dictionary.
+            if key in dict_fields:
+                return dict()
+        
     return value
 
 
 
 # Transform an input TSV file into a JSON array with key value pairs
 # according to the values in the row.
-def tsv_to_json(tsv_file_handle, json_file_handle):
+def tsv_to_json(tsv_file_handle, json_file_handle, dict_fields):
     # Read the TSV data from the file handle
     reader = csv.DictReader(tsv_file_handle, delimiter='\t')
 
@@ -47,7 +54,7 @@ def tsv_to_json(tsv_file_handle, json_file_handle):
     for row in reader:
         dictionary = dict()
         for key, value in row.items():
-            dictionary[key] = convert(value)
+            dictionary[key] = convert(key, value, dict_fields)
         data.append(dictionary)
 
     # Write the data to the JSON file handle
@@ -71,6 +78,12 @@ def getArguments():
         dest="json_file_name",
         default="",
         help="The output file, uses stdout if no file provided.")
+    # Fields that should be treated as dictionaries
+    parser.add_argument(
+        "--dictionary_fields",
+        dest="dictionary_fields",
+        default="",
+        help="A comma separated string of field names that should be explicitly treated as dictionaries.")
     # Verbosity flag
     parser.add_argument(
         "-v",
@@ -86,6 +99,9 @@ def getArguments():
 if __name__ == "__main__":
     # Get the command line arguments.
     options = getArguments()
+
+    # Turn the dictionary fields string into an array
+    dict_fields = options.dictionary_fields.split(",")
 
     # Open the ouput file, use stdout if no file name supplied.
     if options.json_file_name == "":
@@ -109,5 +125,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Perform the conversion
-    tsv_to_json(tsv_file, json_file)
+    tsv_to_json(tsv_file, json_file, dict_fields)
 
