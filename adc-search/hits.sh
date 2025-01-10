@@ -50,23 +50,27 @@ while IFS= read -r dir; do
 	#	tr -d '\n' | tr -d ' ')"
 	query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*)
 	iedb_receptor_iri="$(echo $query_response_str | \
-		jq 'if length > 0 then [.[] | .receptor_group_iri ] else empty end' | \
+		jq 'if length > 0 then [.[] | .receptor_group_iri] else empty end' | \
 		tr -d '\n' | tr -d ' ')"
 	iedb_antigen_info="$(echo $query_response_str | \
-                jq 'if length > 0 then [.[] | .curated_source_antigens[0] ] else empty end' | \
+                jq 'if length > 0 then [.[] | .curated_source_antigens] else empty end' | \
+                tr -d '\n' | tr -s ' ' )"
+	iedb_epitope_iri="$(echo $query_response_str | \
+                jq 'if length > 0 then [.[] | .structure_iris] else empty end' | \
                 tr -d '\n' | tr -s ' ' )"
 
 	#curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*ASSDSAGELF*\&\&select=chain2_cdr3_seq,receptor_group_iri,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene\) | jq -r 'if length > 0 then .[] | "\(.receptor_group_iri)\t\(.chain2_cdr3_seq)\t \(.tcr_export[0].chain_2__curated_v_gene)\t\(.tcr_export[0].chain_2__curated_j_gene)" else empty end'
 
 
 	# Generate the rearrangements annotated with epitope
-	awk -F'\t' -v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_info="$iedb_antigen_info" 'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\n",$1,$11,$14,$22,iedb_receptor_iri,iedb_antigen_info);}' $dir/rearrangement*.tsv >> $output_file
+	awk -F'\t' -v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_info="$iedb_antigen_info" -v iedb_epitope_iri="$iedb_epitope_iri" 'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$1,$11,$14,$22,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_info);}' $dir/rearrangement*.tsv >> $output_file
 
 	# Print out some reporting
 	echo "Processing $dir"
 	echo "    Number of Rearrangements with match for $(basename $dir) = $line_count"
 	echo "    Number of Repertoires with match for $(basename $dir) = $repertoire_count"
 	echo "    Receptor IRI = $iedb_receptor_iri"
+	echo "    Epitope IRI = $iedb_epitope_iri"
 	echo "    Antigen info = ${iedb_antigen_info:0:50}..."
 
 	# Keep track of the totals
