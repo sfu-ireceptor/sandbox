@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Counts the number of times each CDR3 (from column 1 in RECEPTOR_TSV)
+# occurs in the ADC repository TSV file, and outputs a report per
+# CDR3 in OUTPUT_DIR. The output is a JSON object with a key per
+# repository and the value an array, one element per repertoire 
+# where the CDR3 wsa found. Each element in the array is a JSON 
+# object that contains the repertoire_id and the count of the number
+# of times it was found. For example the file CASSLQSSYNSPLHF.json:
+# { "https://covid19-1.ireceptor.org":
+# [ 
+#    { "repertoire_id": "5efbc72d5f94cb6215deecee", "count": 3 }
+# ]
+# }
+# indicates that the CDR3 "CASSLQSSYNSPLHF" was found three times in
+# repertoire_id "5efbc72d5f94cb6215deecee" in repository
+# "https://covid19-1.ireceptor.org"
+# A total count of the number of times a given CDR3 was found can be
+# acquired with the following command:
+#   cat CASSLQSSYNSPLHF.json | jq '[.[] | .[] | .count ] | add'  
+# Which flattens the repository and repertoire lists, creates an array
+# of just the counts, and then adds them all up.
+
 # Check if the input TSV file is provided as an argument
 if [ $# -ne 3 ]; then
     echo "Usage: $0 RECEPTOR_TSV REPOSITORY_TSV OUTPUT_DIR"
