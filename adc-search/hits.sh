@@ -27,49 +27,45 @@ tmp_file=$(mktemp)
 # Loop over the directories we found that contain valid receptor hits.
 while IFS= read -r dir; do
     echo "Processing $dir"
-    # Look up the IEDB recepetor
+
+    # Extract the junction V and J genes from the directory name
     receptor_string=$(basename $dir)
     IFS='_' read -r junction_aa v_gene j_gene <<< "$receptor_string"
-    #echo $junction_aa 
-    #echo $v_gene 
-    #echo $j_gene 
+
+    # Compute the CDR3 as IEDB sometimes has this only
     cdr3_aa="${junction_aa:1:-1}"
-    #echo $cdr3_aa 
-    #curl -s https://query-api.iedb.org/tcr_search?chain1_cdr3_seq=like.$junction_aa | \
-		#jq -r 'if length > 0 then [.[] | [.receptor_group_iri] else empty end'
-    #iedb_receptor_iri="$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*| \
-    #	jq 'if length > 0 then [.[] | .receptor_group_iri ] else empty end' | \
-    #	tr -d '\n' | tr -d ' ')"
-    #query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,structure_iris,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene\) | jq -r 'if length > 0 then .[] | "\(.receptor_group_iri)\t\(.chain2_cdr3_seq)\t \(.tcr_export[0].chain_2__curated_v_gene)\t\(.tcr_export[0].chain_2__curated_j_gene)" else empty end')
+
+    # Generate the query response for the CDR3. We need the V and J genes so
+    # that we can make sure we have an exact match in IEDB.
     query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,structure_iris,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
-    #echo $query_response_str 
+
+    # Get the list of Receptor IRIs. We check both calculated and curated genes 
+    # to make sure we find all matches.
     iedb_receptor_iri=$(echo $query_response_str | \
         jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].receptor_group_iri ] | unique' | \
 	tr -d '\n' | tr -d ' ')
-    #echo $iedb_receptor_iri
+
+    # Get the list of Organism IRIs. We check both calculated and curated genes 
+    # to make sure we find all matches.
     iedb_organism_iri="$(echo $query_response_str | \
         jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].curated_source_antigens[].source_organism_iri ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
-    #echo $iedb_organism_iri
+
+    # Get the list of Antigen IRIs. We check both calculated and curated genes 
+    # to make sure we find all matches.
     iedb_antigen_iri="$(echo $query_response_str | \
         jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].curated_source_antigens[].iri ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
-    #echo $iedb_antigen_iri
+
+    # Get the list of Eptiopr IRIs. We check both calculated and curated genes 
+    # to make sure we find all matches.
     iedb_epitope_iri="$(echo $query_response_str | \
         jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].structure_iris[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
-    #echo $iedb_epitope_iri
-    #query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*)
-    #iedb_receptor_iri="$(echo $query_response_str | \
-        #jq 'if length > 0 then [.[] | .receptor_group_iri] else empty end' | \
-	#tr -d '\n' | tr -d ' ')"
-    #iedb_antigen_info="$(echo $query_response_str | \
-    #    jq 'if length > 0 then [.[] | .curated_source_antigens] else empty end' | \
-    #    tr -d '\n' | tr -s ' ' )"
-    #iedb_epitope_iri="$(echo $query_response_str | \
-    #    jq 'if length > 0 then [.[] | .structure_iris] else empty end' | \
-    #    tr -d '\n' | tr -s ' ' )"
 
+    # For each rearrangement file in the directory, process it. Recall that
+    # it is possible to have more than one rearrangement file as we may span
+    # multiple repositories.
     for file in $dir/rearrangement*.tsv; do
 	echo "    Processing $(basename $file)"
 	# Get the number of rearrangements (less the header)
@@ -89,7 +85,7 @@ while IFS= read -r dir; do
 	# Add these repertoires to the global list of repertoires.
 	cat $tmp_file >> $repertoire_tmp_file
 
-	# Generate the rearrangements annotated with epitope
+	# Generate the rearrangements annotated with receptor, epitope, antigen, and organism
 	awk -F'\t' -v sequence_column=$sequence_column -v repertoire_column=$repertoire_column \
 		-v v_column=$v_column -v j_column=$j_column -v junction_column=$junction_column \
 		-v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_iri="$iedb_antigen_iri" \
