@@ -68,13 +68,31 @@ def processMHC(mhc_path, id_path, output_dir):
                     
                     # Check whether the key is in mhc_class_1_list
                     if mhc_key in mhc_class_1_list:
-                        # Assign the allele to be the value for this subject
+                        # Create empty dick, use the value as the default allele
                         airr_mhc_dict = dict()
-                        airr_mhc_dict["allele_designation"] = mhc_value
+                        mhc_allele = mhc_value
+
+                        # If we are processing a measurement per allele, extract it
+                        # Alleles with measurements are expected to be of the form
+                        # "HLA-DRB1*03:01,0.86,probability" where the second comma
+                        # separated component is a measured value and the third is
+                        # the metric that was used.
+                        mhc_with_measurements = mhc_value.split(",")
+                        # If we have a comma separated list, the allele is element
+                        # 0 and the measurement is element 1
+                        length = len(mhc_with_measurements)
+                        if length > 1:
+                            mhc_allele = mhc_with_measurements[0]
+                            airr_mhc_dict["ir_allele_measurement"] = mhc_with_measurements[1]
+                            if length == 3:
+                                airr_mhc_dict["ir_allele_metric"] = mhc_with_measurements[2]
+
+                        # Assign the allele to be the value for this subject
+                        airr_mhc_dict["allele_designation"] = mhc_allele
 
                         # Extract the gene from the allele (HLA-DRB1*03:01)
                         # Split on allele separator * and take the first element
-                        mhc_gene = mhc_value.split("*")[0]
+                        mhc_gene = mhc_allele.split("*")[0]
 
                         # Loop through mro_dict for the mhc_gene
                         found = False
@@ -88,7 +106,7 @@ def processMHC(mhc_path, id_path, output_dir):
                                 found = True
                                 break
                         if not found:
-                            print("Warning: Could not find MRO ontology entry for %s"%(mhc_value))
+                            print("Warning: Could not find MRO ontology entry for %s"%(mhc_allele))
 
                         # Add the MHC dictionary to the list.
                         mhc_1_list.append(airr_mhc_dict)
@@ -97,13 +115,31 @@ def processMHC(mhc_path, id_path, output_dir):
                     # Note the need to have cols in tsv organized as DRB1_1, DRB1_2, else you
                     # get the above out of order list...
                     if mhc_key in mhc_class_2_list:
-                        # Create a dictionary for this MHC in AIRR format
+                        # Create empty dick, use the value as the default allele
                         airr_mhc_dict = dict()
-                        airr_mhc_dict["allele_designation"] = mhc_value
+                        mhc_allele = mhc_value
+
+                        # If we are processing a measurement per allele, extract it
+                        # Alleles with measurements are expected to be of the form
+                        # "HLA-DRB1*03:01,0.86,probability" where the second comma
+                        # separated component is a measured value and the third is
+                        # the metric that was used.
+                        mhc_with_measurements = mhc_value.split(",")
+                        # If we have a comma separated list, the allele is element
+                        # 0 and the measurement is element 1
+                        length = len(mhc_with_measurements)
+                        if length > 1:
+                            mhc_allele = mhc_with_measurements[0]
+                            airr_mhc_dict["ir_allele_measurement"] = mhc_with_measurements[1]
+                            if length == 3:
+                                airr_mhc_dict["ir_allele_metric"] = mhc_with_measurements[2]
+
+                        # Assign the allele to be the value for this subject
+                        airr_mhc_dict["allele_designation"] = mhc_allele
 
                         # Extract the gene from the allele (HLA-DRB1*03:01)
                         # Split on allele separator * and take the first element
-                        mhc_gene = mhc_value.split("*")[0]
+                        mhc_gene = mhc_allele.split("*")[0]
                         
                         # Loop through mro_dict for the mhc_gene
                         found = False
@@ -116,7 +152,7 @@ def processMHC(mhc_path, id_path, output_dir):
                                 airr_mhc_dict["gene"] = ontology_dict
                                 found = True
                         if not found:
-                            print("Warning: Could not find MRO ontology entry for %s"%(mhc_value))
+                            print("Warning: Could not find MRO ontology entry for %s"%(mhc_allele))
 
                         # Add the MHC dictionary to the list.
                         mhc_2_list.append(airr_mhc_dict)
@@ -171,6 +207,8 @@ def processMHC(mhc_path, id_path, output_dir):
             # store it as an array.
             data_processing_files_str = id_df.loc[id_ind,"data_processing_files"]
             data_processing_files = data_processing_files_str.split(",")
+            data_processing_files = [x.strip() for x in data_processing_files]
+
             # Make the data_processing object, which includes the list of data_processing_files
             data_processing_dict = {}
             # Look up the data_processing_id, as above
