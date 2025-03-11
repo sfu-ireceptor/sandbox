@@ -42,25 +42,25 @@ while IFS= read -r dir; do
     # Get the list of Receptor IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_receptor_iri=$(echo $query_response_str | \
-        jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].receptor_group_iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select( (.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].receptor_group_iri ] | unique' | \
 	tr -d '\n' | tr -d ' ')
 
     # Get the list of Organism IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_organism_iri="$(echo $query_response_str | \
-        jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].curated_source_antigens[].source_organism_iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].curated_source_antigens // [] | .[].source_organism_iri ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Antigen IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_antigen_iri="$(echo $query_response_str | \
-        jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].curated_source_antigens[].iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].curated_source_antigens // [] | .[].iri ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Eptiopr IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_epitope_iri="$(echo $query_response_str | \
-        jq --arg v $v_gene --arg j $j_gene '[ .[] | select(.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end | split("*") | .[0] == $j)) ] | [.[].structure_iris[] ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].structure_iris[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # For each rearrangement file in the directory, process it. Recall that
@@ -68,6 +68,11 @@ while IFS= read -r dir; do
     # multiple repositories.
     for file in $dir/rearrangement*.tsv; do
 	echo "    Processing $(basename $file)"
+	# Get the repository from the file name. Filenames are of the form:
+	# rearrangement-t1d-1.ireceptor.org-CASESSGANVLTF_TRBV19_TRBJ2-6.tsv
+	repository=$(echo ${file} |  grep -oP '(?<=rearrangement-)[^.]+\.[^.]+\.[a-zA-Z]{2,}')
+	echo "        Repository = $repository"
+
 	# Get the number of rearrangements (less the header)
 	line_count=$(tail +2 $file | wc -l)
 
@@ -90,7 +95,8 @@ while IFS= read -r dir; do
 		-v v_column=$v_column -v j_column=$j_column -v junction_column=$junction_column \
 		-v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_iri="$iedb_antigen_iri" \
 		-v iedb_epitope_iri="$iedb_epitope_iri" -v iedb_organism_iri="$iedb_organism_iri"\
-		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,$v_column,$j_column,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri);}' $file >> $output_file
+		-v repository="$repository" \
+		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,$v_column,$j_column,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, repository);}' $file >> $output_file
 
 	# Print out some reporting
 	echo "        Number of Rearrangements with match for $(basename $dir) = $line_count"
