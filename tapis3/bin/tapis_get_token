@@ -6,6 +6,13 @@ then
     exit 1
 fi
 
+# Set the TAPIS tenant if it isn't already set.
+if [[ -z "${TAPIS_TENANT}" ]]; then
+  TAPIS_TENANT="ireceptor.tapis.io"
+fi
+echo "Using ${TAPIS_TENANT}"
+
+
 read -p "password: " -s password
 echo ""
-curl -H "Content-type: application/json" -d "{\"username\": \"$1\", \"password\": \"${password}\", \"grant_type\": \"password\" }" https://ireceptor.tapis.io/v3/oauth2/tokens
+curl -H "Content-type: application/json" -d "{\"username\": \"$1\", \"password\": \"${password}\", \"grant_type\": \"password\" }" https://${TAPIS_TENANT}/v3/oauth2/tokens

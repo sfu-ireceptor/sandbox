@@ -6,6 +6,11 @@ then
     exit 1
 fi
 
+# Set the TAPIS tenant if it isn't already set.
+if [[ -z "${TAPIS_TENANT}" ]]; then
+  TAPIS_TENANT="ireceptor.tapis.io"
+fi
+
 # Get info about a job
-curl -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/jobs/$1 | python3 -m json.tool
+curl -s -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://${TAPIS_TENANT}/v3/jobs/$1 | python3 -m json.tool
 

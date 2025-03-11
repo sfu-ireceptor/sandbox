@@ -12,4 +12,5 @@ curl -H "X-Tapis-Token: $JWT" https://ireceptor.tapis.io/v3/oauth2/profiles
 # all systems
 curl -H "X-Tapis-Token: $JWT" https://ireceptor.tapis.io/v3/systems?select=allAttributes
 
+# Credentials have been moved to: ~/bcorrie/tapis3/cred/
 

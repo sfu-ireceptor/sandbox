@@ -1,3 +1,8 @@
 #!/bin/bash
 
-curl -s -H "X-Tapis-Token: $JWT" https://ireceptor.tapis.io/v3/systems?select=allAttributes
+# Set the TAPIS tenant if it isn't already set.
+if [[ -z "${TAPIS_TENANT}" ]]; then
+  TAPIS_TENANT="ireceptor.tapis.io"
+fi
+
+curl -s -H "X-Tapis-Token: $JWT" https://${TAPIS_TENANT}/v3/systems?select=allAttributes

@@ -14,6 +14,11 @@ else
 	path=$2
 fi
 
+# Set the TAPIS tenant if it isn't already set.
+if [[ -z "${TAPIS_TENANT}" ]]; then
+  TAPIS_TENANT="ireceptor.tapis.io"
+fi
+
 # Get the file list
-curl -s -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/files/ops/$1/${path} | python3 -m json.tool
+curl -s -H "X-Tapis-Token: $JWT" https://${TAPIS_TENANT}/v3/files/ops/$1/${path} | python3 -m json.tool
 
