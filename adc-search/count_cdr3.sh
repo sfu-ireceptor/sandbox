@@ -15,11 +15,16 @@
 # indicates that the CDR3 "CASSLQSSYNSPLHF" was found three times in
 # repertoire_id "5efbc72d5f94cb6215deecee" in repository
 # "https://covid19-1.ireceptor.org"
+#
 # A total count of the number of times a given CDR3 was found can be
 # acquired with the following command:
 #   cat CASSLQSSYNSPLHF.json | jq '[.[] | .[] | .count ] | add'  
 # Which flattens the repository and repertoire lists, creates an array
 # of just the counts, and then adds them all up.
+#
+# A count per repository can be acquired with:
+#   $ cat CASSLQSSYNSPLHF.json | jq 'to_entries | map({repository: .key, total_count: ([.value[] | .count] | add)})'
+
 
 # Check if the input TSV file is provided as an argument
 if [ $# -ne 3 ]; then
