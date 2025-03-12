@@ -61,7 +61,15 @@ python3 mhc2airr-json.py Kent-HLA.tsv Kent-Repertoires.tsv output
 Load the data into an AIRR repository, assuming you have access
 to the repository directly. You can run the iReceptor Turnkey
 update_metadata script on each file generated to update the subject
-MHC for each repertoire in the repository.
+MHC for each repertoire in the repository. You might want to back up
+the database for the update.
 ```
-update_metadata.sh repertoire output/XXX.json
+# First test the data
+for file in output/*; do
+    update_metadata.sh repertoire --skipload $file
+done
+# If no errors, load the data.
+for file in output/*; do
+    update_metadata.sh repertoire $file
+done
 ```
