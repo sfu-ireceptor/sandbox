@@ -16,6 +16,7 @@
 # subject_id, repertoire_id, data_processing_id, sample_processing_id, data_processing_files, 
 
 import pandas as pd
+import math
 import copy
 import json
 import argparse
@@ -68,7 +69,11 @@ def processMHC(mhc_path, id_path, output_dir):
                     
                     # Check whether the key is in mhc_class_1_list
                     if mhc_key in mhc_class_1_list:
-                        # Create empty dick, use the value as the default allele
+                        # Check if value is a string (pandas reads empty values as nan)
+                        # If empty, replace with an empty string.
+                        if not isinstance(mhc_value,str):
+                            mhc_value = ""
+                        # Create empty dict, use the value as the default allele
                         airr_mhc_dict = dict()
                         mhc_allele = mhc_value
 
@@ -115,7 +120,11 @@ def processMHC(mhc_path, id_path, output_dir):
                     # Note the need to have cols in tsv organized as DRB1_1, DRB1_2, else you
                     # get the above out of order list...
                     if mhc_key in mhc_class_2_list:
-                        # Create empty dick, use the value as the default allele
+                        # Check if value is a string (pandas reads empty values as nan)
+                        # If empty, replace with an empty string.
+                        if not isinstance(mhc_value,str):
+                            mhc_value = ""
+                        # Create empty dict, use the value as the default allele
                         airr_mhc_dict = dict()
                         mhc_allele = mhc_value
 
