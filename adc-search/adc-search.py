@@ -115,32 +115,62 @@ def performRearrangementQuery(rearrangement_url, repertoires,
 
 def processQuery(query_url, query_dict, output_format, verbose):
 
-    # Do a post request
-    url_response = requests.post(query_url, json=query_dict)
+    # Perform delay when queries fail with HTTP 429 (too
+    # many requests) failure.
+    success = False
+    tries = 0
+    max_tries = 10
+    sleep_time = 5
+    json_data = {}
 
-    if output_format == "JSON":
-        # Get the JSON data as a dictionary.
-        try:
-            json_data = url_response.json()
-        except json.decoder.JSONDecodeError as error:
-            print("ERROR: Unable to process JSON response: " + str(error))
-            print("ERROR: Status code = %s"%(url_response.status_code))
-            print("ERROR: Reason = %s"%(url_response.reason))
-            if verbose:
-                print("ERROR: Query = " + str(query_dict))
-            return None
-        except Exception as error:
-            print("ERROR: Unable to process JSON response: " + str(error))
-            print("ERROR: Status code = %s"%(url_response.status_code))
-            print("ERROR: Reason = %s"%(url_response.reason))
-            if verbose:
-                print("ERROR: Query = " + str(query_dict))
-            return None
+    # While we don't have a success and we haven't hit our maximum
+    # number of tries, keep trying. Eventually after max_tries we
+    # give up.
+    while tries < max_tries and success == False:
 
-        # Return the JSON data
-        return json_data
+        # Do a post request
+        url_response = requests.post(query_url, json=query_dict)
+        tries = tries + 1
+        success = True
+        if verbose:
+            print("IR-INFO: HTTP Response status code = %d"%(url_response.status_code))
+
+        # If it is a 429 error, sleep and then retry. Otherwise just fail.
+        if url_response.status_code == 429:
+            print("IR-INFO: Unable to process JSON response (tries = %d)"%(tries))
+            print("IR-INFO: Reason = %s (status code = %d)"%(url_response.reason, url_response.status_code))
+            print("IR-INFO: Retrying after delay")
+            success = False
+            time.sleep(sleep_time)
+        elif output_format == "JSON":
+            # Get the JSON data as a dictionary.
+            try:
+                json_data = url_response.json()
+                success = True
+            except json.decoder.JSONDecodeError as error:
+                print("ERROR: Unable to process JSON response: " + str(error))
+                print("ERROR: Status code = %s"%(url_response.status_code))
+                print("ERROR: Reason = %s"%(url_response.reason))
+                if verbose:
+                    print("ERROR: Query = " + str(query_dict))
+                return None
+            except Exception as error:
+                print("ERROR: Unable to process JSON response: " + str(error))
+                print("ERROR: Status code = %s"%(url_response.status_code))
+                print("ERROR: Reason = %s"%(url_response.reason))
+                if verbose:
+                    print("ERROR: Query = " + str(query_dict))
+                return None
+
+    # Return the data if successful, None otherwise
+    if not success:
+        print("IR-ERROR: Unable to make connection after %d tries: "%(max_tries))
+        return None
     else:
-        return url_response.content.decode('utf-8')
+        if output_format == "JSON":
+            return json_data
+        else:
+            return url_response.content.decode('utf-8')
 
 def getHeaderDict():
     # Set up the header for the post request.
