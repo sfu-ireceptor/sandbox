@@ -32,8 +32,10 @@ MISSES_DIR=$OUTPUT_BASE_DIR/misses
 CDR3=${JUNCTION:1:-1}
 
 # Store in the output directory named for the JUNCTION
-BASE_RECEPTOR_STR="${JUNCTION}_${VGENE}_${JGENE}"
-OUTPUT_DIR="$OUTPUT_BASE_DIR/${JUNCTION}_${VGENE}_${JGENE}"
+VGENE_DIR=$( echo $VGENE | sed 's/\//_/g')
+JGENE_DIR=$( echo $JGENE | sed 's/\//_/g')
+BASE_RECEPTOR_STR="${JUNCTION}_${VGENE_DIR}_${JGENE_DIR}"
+OUTPUT_DIR="$OUTPUT_BASE_DIR/${BASE_RECEPTOR_STR}"
 REPORT_FILE=$OUTPUT_DIR/report.out
 
 # Get the directory of the current script

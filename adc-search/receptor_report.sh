@@ -17,17 +17,22 @@ REPERTOIRE_FIELD_TSV=$3
 JUNCTION=$4
 VGENE=$5
 JGENE=$6
+VGENE_DIR=$( echo $VGENE | sed 's/\//_/g')
+JGENE_DIR=$( echo $JGENE | sed 's/\//_/g')
+#echo $VGENE_DIR
+#echo $JGENE_DIR
 
 # Sometimes we need the CDR3, so compute it if from the Junction
 CDR3=${JUNCTION:1:-1}
 
 # Store in the output directory named for the JUNCTION
 if [ $# -eq 6 ]; then
-  OUTPUT_DIR="${JUNCTION}_${VGENE}_${JGENE}"
+  OUTPUT_DIR="${JUNCTION}_${VGENE_DIR}_${JGENE_DIR}"
 else
   EPITOPE=$7
-  OUTPUT_DIR="${JUNCTION}_${VGENE}_${JGENE}_${EPITOPE}"
+  OUTPUT_DIR="${JUNCTION}_${VGENE_DIR}_${JGENE_DIR}_${EPITOPE}"
 fi
+#echo $OUTPUT_DIR
 REPORT_FILE=$OUTPUT_DIR/report.out
 
 # Get the directory of the current script
