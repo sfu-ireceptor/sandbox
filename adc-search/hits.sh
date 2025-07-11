@@ -37,7 +37,7 @@ while IFS= read -r dir; do
 
     # Generate the query response for the CDR3. We need the V and J genes so
     # that we can make sure we have an exact match in IEDB.
-    query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,structure_iris,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
+    query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,parent_source_antigen_iris,structure_iris,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
 
     # Get the list of Receptor IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
@@ -54,7 +54,7 @@ while IFS= read -r dir; do
     # Get the list of Antigen IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_antigen_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].curated_source_antigens // [] | .[].iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].parent_source_antigen_iris[] // []] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Eptiopr IRIs. We check both calculated and curated genes 
@@ -79,8 +79,8 @@ while IFS= read -r dir; do
 	# Get the column where the reperotire_id is stored.
 	repertoire_column=$(awk -F'\t' -v label="repertoire_id" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
 	sequence_column=$(awk -F'\t' -v label="sequence_id" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
-	v_column=$(awk -F'\t' -v label="v_call" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
-	j_column=$(awk -F'\t' -v label="j_call" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
+	v_column=$(awk -F'\t' -v label="v_gene" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
+	j_column=$(awk -F'\t' -v label="j_gene" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
 	junction_column=$(awk -F'\t' -v label="junction_aa" 'NR==1 {for (i=1; i<=NF; i++) if ($i == label) print i; exit}' $file)
 	
 	# Extract the list of unique repertoires into a tmp file and count them 
