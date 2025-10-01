@@ -199,16 +199,21 @@ def processMHC(mhc_path, id_path, output_dir):
 
             # Make the mhc_genotype_set object, which is a dict that includes the mhc_genotype_list
             mhc_genotype_set = {}
-            mhc_genotype_set["mhc_genotype_set_id"] = str(subject) + "_MHC" 
-            mhc_genotype_set["mhc_genotype_list"] = mhc_genotype_list
+            if mhc_genotype_list:
+                mhc_genotype_set["mhc_genotype_set_id"] = str(subject) + "_MHC" 
+                mhc_genotype_set["mhc_genotype_list"] = mhc_genotype_list
 
             # Make the genotype object, which is a dict that contains one element, the mhc_genotype_set
             genotype = {}
-            genotype["mhc_genotype_set"] = mhc_genotype_set
+            if mhc_genotype_set:
+                genotype["mhc_genotype_set"] = mhc_genotype_set
 
             # Make the subject object, which is a dict that contains one element, the genotype
             subject_dict = {}
-            subject_dict["genotype"] = genotype
+            if genotype:
+                subject_dict["genotype"] = genotype
+            else:
+                subject_dict["genotype"] = None
 
             # Make the sample object
             sample_dict = {}

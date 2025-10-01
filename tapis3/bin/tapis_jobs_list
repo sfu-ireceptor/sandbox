@@ -12,7 +12,6 @@ if [[ -z "${TAPIS_TENANT}" ]]; then
 fi
 
 # Get the list of Jobs
-#curl -s -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://tacc.tapis.io/v3/jobs/list?orderBy=lastUpdated&pretty=true 
-curl -s -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://${TAPIS_TENANT}/v3/jobs/list?limit=100000&orderBy=lastUpdated
+curl -s -X GET -H "content-type: application/json" -H "X-Tapis-Token: $JWT" https://${TAPIS_TENANT}/v3/jobs/list?limit=100000\&orderBy=lastUpdated
 
 

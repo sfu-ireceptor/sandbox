@@ -1,6 +1,6 @@
 # Initial TRA IEDB Export
 
-This export was produced on 2024-08-06, using the process described in
+This export was produced on 2025-07-11, using the process described in
 the directory above.
 
 - Change column from e.g. junction_aa to junction_aa_tra to differentiate between TRA and TRB

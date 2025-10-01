@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "User tokens are no longer used - please use the Tapis long lived token."
+exit 1
+
 if [ $# -ne 1 ];
 then
     echo "usage: $0 username"

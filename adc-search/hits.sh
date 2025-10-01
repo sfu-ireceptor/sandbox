@@ -37,7 +37,7 @@ while IFS= read -r dir; do
 
     # Generate the query response for the CDR3. We need the V and J genes so
     # that we can make sure we have an exact match in IEDB.
-    query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,parent_source_antigen_iris,structure_iris,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
+    query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,parent_source_antigen_iris,structure_iris,mhc_allele_iris,mhc_allele_names,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
 
     # Get the list of Receptor IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
@@ -57,10 +57,22 @@ while IFS= read -r dir; do
 	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].parent_source_antigen_iris[] // []] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
-    # Get the list of Eptiopr IRIs. We check both calculated and curated genes 
+    # Get the list of Eptiope IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_epitope_iri="$(echo $query_response_str | \
 	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].structure_iris[] ] | unique' | \
+        tr -d '\n' | tr -d ' ' )"
+
+    # Get the list of HLA IRIs. We check both calculated and curated genes 
+    # to make sure we find all matches.
+    iedb_hla_iri="$(echo $query_response_str | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_iris[] ] | unique' | \
+        tr -d '\n' | tr -d ' ' )"
+
+    # Get the list of HLA allele names. We check both calculated and curated genes 
+    # to make sure we find all matches.
+    iedb_hla_name="$(echo $query_response_str | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_names[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # For each rearrangement file in the directory, process it. Recall that
@@ -95,8 +107,9 @@ while IFS= read -r dir; do
 		-v v_column=$v_column -v j_column=$j_column -v junction_column=$junction_column \
 		-v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_iri="$iedb_antigen_iri" \
 		-v iedb_epitope_iri="$iedb_epitope_iri" -v iedb_organism_iri="$iedb_organism_iri"\
+		-v iedb_hla_iri="$iedb_hla_iri" -v iedb_hla_name="$iedb_hla_name"\
 		-v repository="$repository" \
-		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,$v_column,$j_column,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, repository);}' $file >> $output_file
+		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,$v_column,$j_column,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, iedb_hla_iri, iedb_hla_name, repository);}' $file >> $output_file
 
 	# Print out some reporting
 	echo "        Number of Rearrangements with match for $(basename $dir) = $line_count"
@@ -105,6 +118,8 @@ while IFS= read -r dir; do
 	echo "        Epitope IRI = $iedb_epitope_iri"
 	echo "        Antigen info = $iedb_antigen_iri"
 	echo "        Organism info = $iedb_organism_iri"
+	echo "        HLA info = $iedb_hla_iri"
+	echo "        HLA name = $iedb_hla_name"
 
 	# Keep track of the totals
 	total_repertoires=$((total_repertoires + repertoire_count))
