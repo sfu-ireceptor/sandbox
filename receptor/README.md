@@ -20,8 +20,9 @@ From the Excel spreadsheet from IEDB
 # On the Unix side:
 
 - Get rid of the first line, the IEDB file has two header rows.
-
+```bash
 tail -n +2 iedb_tcr_positive_v3_2024-08-06.tsv > iedb_tcr_positive_v3_tail_2024-08-06.tsv
+```
 
 - Get the header columns of interest
 
