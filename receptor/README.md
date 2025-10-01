@@ -1,6 +1,4 @@
-Steps:
-
-From IEDB
+# From IEDB
 
 - Export all receptors from IEDB
 
@@ -19,7 +17,7 @@ From the Excel spreadsheet from IEDB
   - Take the respective _calculated if it exists
   - If not then take the respective _curated value
 
-On the Unix side:
+# On the Unix side:
 
 - Get rid of the first line, the IEDB file has two header rows.
 
