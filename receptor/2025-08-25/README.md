@@ -1,4 +1,4 @@
-# Initial TRA IEDB Export
+# Full TR and IG export as of 2025-08-25
 
 This export was produced on 2025-08-25, using the process described in
 the directory above. 
