@@ -38,12 +38,12 @@ wc -l *bcr*unique*.tsv
 
 ```
 
-## Compute differences between this and the 2024-08-06 export
+## Compute differences between this and the 2024-08-06 TRB export
 ```bash
 grep -F -x -v -f ../2024-08-06/iedb_tcr_positive_v3_tail_trb_full_receptor_unique_2024-08-06.tsv 2025-08-25-iedb_tcr_positive_v3_tail_trb_full_chain_unique.tsv > 2025-08-25_trb_additions_from_2024-08-06.tsv
 ```
 
-## Compute differences between this and the 2025-07-11 export
+## Compute differences between this and the 2025-07-11 TRA export
 ```bash
 grep -F -x -v -f ../2025-07-11/iedb_tcr_positive_v3_tail_tra_full_receptor_unique_2025-07-11.tsv 2025-08-25-iedb_tcr_positive_v3_tail_tra_full_chain_unique.tsv > 2025-08-25_tra_additions_from_2025-07-11.tsv
 ```
