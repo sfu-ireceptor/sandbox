@@ -6,6 +6,7 @@ the directory above.
 - Change column from e.g. junction_aa to junction_aa_tra to differentiate between TRA and TRB
 ```bash
 vi iedb_tcr_positive_v3_2025-07-11.tsv
+```
 
 - Get rid of the first line, the IEDB file has two header rows.
 
