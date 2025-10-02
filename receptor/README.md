@@ -17,35 +17,10 @@ From the Excel spreadsheet from IEDB
   - Take the respective _calculated if it exists
   - If not then take the respective _curated value
 
-# On the Unix side:
+# Receptor Exports
 
-- Get rid of the first line, the IEDB file has two header rows.
-```bash
-tail -n +2 iedb_tcr_positive_v3_2024-08-06.tsv > iedb_tcr_positive_v3_tail_2024-08-06.tsv
-```
-
-- Get the header columns of interest
-
-```bash
-bash cut_headers.sh iedb_tcr_positive_v3_tail_2024-08-06.tsv 'junction_aa,v_gene,j_gene' > iedb_tcr_positive_v3_tail_trb_2024-08-06.tsv
-```
-
-- Extract only rows that have a hopefully valid junction_aa, v_gene, j_gene
-
-```bash
-cat iedb_tcr_positive_v3_tail_trb_2024-08-06.tsv | awk -F'\t' '$1 ~ /^C.*F$/ && $2 ~ /TRB/ && $3 ~ /TRB/' > iedb_tcr_positive_v3_tail_trb_full_receptor_2024-08-06.tsv
-```
-
-- Sort them for uniqueness
-
-```bash
-cat iedb_tcr_positive_v3_tail_trb_full_receptor_2024-08-06.tsv | sort -u > iedb_tcr_positive_v3_tail_trb_full_receptor_unique_2024-08-06.tsv
-```
-
-- We have a list of TCR chain receptors
-
-```bash
-wc -l iedb_tcr_positive_v3_tail_trb_full_receptor_unique_2024-08-06.tsv
-134821 iedb_tcr_positive_v3_tail_trb_full_receptor_unique_2024-08-06.tsv
-```
+- 2024-08-06-TRB is the initial IEDB TRB export
+- 2025-07-11-TRA is the initial IEDB TRA export
+- 2025-08-25-TR-IG is a combined IG and TR export
+  - Includes updates for TRA and TRB from previous exports
 
