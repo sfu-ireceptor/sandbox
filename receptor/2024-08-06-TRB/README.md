@@ -1,4 +1,4 @@
-# Initial IEDB Export
+# Initial TRB IEDB Export
 
 This export was produced on 2024-08-06, using the process described in
 the directory above.
