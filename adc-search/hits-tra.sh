@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Shell script that loops over directories produced by "receptor_report_fast.sh",
+# looks up each receptor in IEDB, and produces a receptor/epitope pair file that
+# can be loaded into an iReceptor database. TRA and TRB are different, so we need
+# separate scripts.
+#
+# Traverses the directory tree and for every directory not named "misses" (this
+# should leave only directories named "hits") it processes all of the directories
+# with names of the form C* which should be a junction AA. Directories are of the
+# form "CAISETGTDTQYF_TRBV10-3_TRBJ2-3" which represent the output for the ADC
+# search for that receptor. Find command used to do this:
+#    - find  . -type d \( -name "misses" -prune \) -o -type d -name "C*" -print
+
 # Check if we have an output file
 if [ $# -ne 1 ]; then
     echo "Usage: $0 OUTPUT_FILE"
