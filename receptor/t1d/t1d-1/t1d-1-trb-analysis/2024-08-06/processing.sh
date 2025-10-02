@@ -3,7 +3,7 @@ nohup bash run-t1d-1.sh > t1d-1-2024-12-08.out
 
 # Annotate each sequence in the analysis with its epitope (TAKES A WHILE - HOURS)
 #nohup bash ../../../hits.sh hits-sequence-2025-02-15.tsv > hits-2025-02-15.out
-nohup bash ../../../hits.sh hits-sequence-2025-06-30.tsv > hits-2025-06-30.out
+nohup bash $IR_SANDBOX/adc-search/hits-trb.sh hits-sequence-2025-10-02.tsv > hits-2025-10-02.out &
 
 # Extract the unique receptors, epitopes, antigens, and organisms
 bash ../../../unique_extract.sh hits-sequence-2025-06-30.tsv 6 > receptors-2025-06-30.tsv
