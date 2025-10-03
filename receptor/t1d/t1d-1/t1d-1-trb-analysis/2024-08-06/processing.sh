@@ -15,7 +15,6 @@ mv hits-sequence-2025-10-02-header.tsv hits-sequence-trb-header-2024-08-06-2025-
 # Check files for consistency, reprocessing should not add any rows.
 wc -l hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
 # 621230 hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
-ubuntu@turnkey-test2:/data/src/sandbox/receptor/t1d/t1d-1/t1d-1-trb-analysis/2024-08-06$ wc -l hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
 wc -l hits-sequence-2025-06-30-header.tsv
 # 621230 hits-sequence-2025-06-30-header.tsv
 
