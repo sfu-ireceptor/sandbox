@@ -12,6 +12,14 @@ vi hits-sequence-2025-10-02-header.tsv
 # run date (2025-10-02).
 mv hits-sequence-2025-10-02.tsv hits-sequence-trb-2024-08-06-2025-10-02.tsv
 mv hits-sequence-2025-10-02-header.tsv hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
+# Check files for consistency, reprocessing should not add any rows.
+wc -l hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
+# 621230 hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
+ubuntu@turnkey-test2:/data/src/sandbox/receptor/t1d/t1d-1/t1d-1-trb-analysis/2024-08-06$ wc -l hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
+wc -l hits-sequence-2025-06-30-header.tsv
+# 621230 hits-sequence-2025-06-30-header.tsv
+
+
 
 # Extract the unique receptors, epitopes, antigens, and organisms
 bash ../../../unique_extract.sh hits-sequence-2025-06-30.tsv 6 > receptors-2025-06-30.tsv
