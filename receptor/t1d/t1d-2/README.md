@@ -1,4 +1,4 @@
-# t1d-1 receptor/epitope mapping
+# t1d-2 receptor/epitope mapping
 
 - TRB mapping is in t1d-2-trb-analysis.
 - TRA mapping is in t1d-2-tra-analysis.
