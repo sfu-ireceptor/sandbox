@@ -1,0 +1,22 @@
+{
+  "filters": {
+    "op":"and",
+    "content": [
+      {
+        "op":"=",
+        "content": {
+          "field":"study.keywords_study",
+          "value":"contains_schema_rearrangement"
+        }
+      },
+      {
+        "op":"in",
+        "content": {
+          "field":"sample.pcr_target.pcr_target_locus",
+          "value":["IGH","IGK","IGL"]
+        }
+      }
+    ]
+  }
+}
+
