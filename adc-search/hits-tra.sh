@@ -41,15 +41,21 @@ while IFS= read -r dir; do
     echo "Processing $dir"
 
     # Extract the junction V and J genes from the directory name
+    # of the form CASNSLSGELFF_TRBV27_TRBJ2-2 into an array of
+    # parts separated by "_"
     receptor_string=$(basename $dir)
     IFS="_" read -r -a parts <<< "$receptor_string"
-    # first element
+    # junction_aa is the first element
     junction_aa="${parts[0]}"
-    # last element
+    # J gene is the last element
     j_gene="${parts[-1]}"
-    # everything in between, joined with "_"
+    # the V gene is everything in between
+    # Note: V genes can have slashes in them - so directories when created
+    # replace the / with _. The following recombines somethings like "TRBVX-Y/ORF"
+    # which is stored in a directory as "TRBV-X-Y_ORF" back to the gene name by
+    # concatenating the array elements "TRBV-X-Y" and "ORF" with a / to get back
+    # to "TRBVX-Y/ORF"
     v_gene=$(IFS="/"; echo "${parts[*]:1:${#parts[@]}-2}")
-    #IFS='_' read -r junction_aa v_gene j_gene <<< "$receptor_string"
 
     # Compute the CDR3 as IEDB sometimes has this only
     cdr3_aa="${junction_aa:1:-1}"
@@ -73,7 +79,7 @@ while IFS= read -r dir; do
     # Get the list of Antigen IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_antigen_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].parent_source_antigen_iris // [] | .[]] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [ .[] | .parent_source_antigen_iris // [] | .[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Eptiope IRIs. We check both calculated and curated genes 
@@ -124,17 +130,19 @@ while IFS= read -r dir; do
 	# Generate the rearrangements annotated with receptor, epitope, antigen, and organism
 	awk -F'\t' -v sequence_column=$sequence_column -v repertoire_column=$repertoire_column \
 		-v v_column=$v_column -v j_column=$j_column -v junction_column=$junction_column \
+		-v v_gene=$v_gene -v j_gene=$j_gene \
 		-v iedb_receptor_iri=$iedb_receptor_iri -v iedb_antigen_iri="$iedb_antigen_iri" \
 		-v iedb_epitope_iri="$iedb_epitope_iri" -v iedb_organism_iri="$iedb_organism_iri"\
 		-v iedb_hla_iri="$iedb_hla_iri" -v iedb_hla_name="$iedb_hla_name"\
 		-v repository="$repository" \
-		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,$v_column,$j_column,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, iedb_hla_iri, iedb_hla_name, repository);}' $file >> $output_file
+		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,v_gene,j_gene,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, iedb_hla_iri, iedb_hla_name, repository);}' $file >> $output_file
 
 	# Print out some reporting
         echo "        Receptor info = $junction_aa $v_gene $j_gene"
         echo "        Searching for $cdr3_aa"
 	echo "        Number of Rearrangements with match for $(basename $dir) = $line_count"
 	echo "        Number of Repertoires with match for $(basename $dir) = $repertoire_count"
+	echo "        Receptor genes = $v_gene, $j_gene"
 	echo "        Receptor IRI = $iedb_receptor_iri"
 	echo "        Epitope IRI = $iedb_epitope_iri"
 	echo "        Antigen IRI = $iedb_antigen_iri"

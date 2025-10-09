@@ -2,13 +2,14 @@
 
 # Shell script that loops over directories produced by "receptor_report_fast.sh",
 # looks up each receptor in IEDB, and produces a receptor/epitope pair file that
-# can be loaded into an iReceptor database.
+# can be loaded into an iReceptor database. TRA/TRB/IGH/IGL are different, so we need
+# separate scripts.
 #
 # Traverses the directory tree and for every directory not named "misses" (this
 # should leave only directories named "hits") it processes all of the directories
 # with names of the form C* which should be a junction AA. Directories are of the
 # form "CAISETGTDTQYF_TRBV10-3_TRBJ2-3" which represent the output for the ADC
-# search for that receptor. Find command used to do this: 
+# search for that receptor. Find command used to do this:
 #    - find  . -type d \( -name "misses" -prune \) -o -type d -name "C*" -print
 
 # Check if we have an output file
@@ -42,11 +43,11 @@ while IFS= read -r dir; do
     # Extract the junction V and J genes from the directory name
     receptor_string=$(basename $dir)
     IFS="_" read -r -a parts <<< "$receptor_string"
-    # junction_aa is the first element
+    # first element
     junction_aa="${parts[0]}"
-    # J gene is the last element
+    # last element
     j_gene="${parts[-1]}"
-    # the V gene is everything in between
+    # everything in between, joined with "_"
     # Note: V genes can have slashes in them if they are ORF genes - so directories when created
     # replace the / with _. The following recombines somethings like "TRBVX-Y/ORF"
     # which is stored in a directory as "TRBV-X-Y_ORF" back to the gene name by
@@ -59,42 +60,42 @@ while IFS= read -r dir; do
 
     # Generate the query response for the CDR3. We need the V and J genes so
     # that we can make sure we have an exact match in IEDB.
-    query_response_str=$(curl -s https://query-api.iedb.org/tcr_search?chain2_cdr3_seq=like.*$cdr3_aa*\&\&select=chain2_cdr3_seq,receptor_group_iri,curated_source_antigens,parent_source_antigen_iris,structure_iris,mhc_allele_iris,mhc_allele_names,tcr_export\(chain_2__curated_v_gene,chain_2__curated_j_gene,chain_2__calculated_v_gene,chain_2__calculated_j_gene\) )
+    query_response_str=$(curl -s https://query-api.iedb.org/bcr_search?chain1_cdr3_seq=like.*$cdr3_aa*\&\&select=chain1_cdr3_seq,receptor_group_iri,curated_source_antigens,parent_source_antigen_iris,structure_iris,mhc_allele_iris,mhc_allele_names,bcr_export\(chain_1__curated_v_gene,chain_1__curated_j_gene,chain_1__calculated_v_gene,chain_1__calculated_j_gene\) )
 
     # Get the list of Receptor IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_receptor_iri=$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select( (.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].receptor_group_iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select( (.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].receptor_group_iri ] | unique' | \
 	tr -d '\n' | tr -d ' ')
 
     # Get the list of Organism IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_organism_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].curated_source_antigens // [] | .[].source_organism_iri ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].curated_source_antigens // [] | .[].source_organism_iri ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Antigen IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_antigen_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [ .[] | .parent_source_antigen_iris // [] | .[] ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [ .[] | .parent_source_antigen_iris // [] | .[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of Eptiope IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_epitope_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].structure_iris[] ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].structure_iris[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # Get the list of HLA IRIs. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_hla_iri="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_iris[] ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_iris[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
-    # Get the list of HLA allele names. We check both calculated and curated genes 
+    # Get the list of HLA names. We check both calculated and curated genes 
     # to make sure we find all matches.
     iedb_hla_name="$(echo $query_response_str | \
-	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain2_cdr3_seq == $cdr3_aa or .chain2_cdr3_seq == $junction_aa) and (.tcr_export[] | (if .chain_2__calculated_v_gene != null then .chain_2__calculated_v_gene else .chain_2__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_2__calculated_j_gene != null then .chain_2__calculated_j_gene else .chain_2__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_names[] ] | unique' | \
+	    jq --arg v $v_gene --arg j $j_gene --arg cdr3_aa $cdr3_aa --arg junction_aa $junction_aa '[ .[] | select((.chain1_cdr3_seq == $cdr3_aa or .chain1_cdr3_seq == $junction_aa) and (.bcr_export[] | (if .chain_1__calculated_v_gene != null then .chain_1__calculated_v_gene else .chain_1__curated_v_gene end // "" | split("*") | .[0] == $v) and (if .chain_1__calculated_j_gene != null then .chain_1__calculated_j_gene else .chain_1__curated_j_gene end // "" | split("*") | .[0] == $j))) ] | [.[].mhc_allele_names[] ] | unique' | \
         tr -d '\n' | tr -d ' ' )"
 
     # For each rearrangement file in the directory, process it. Recall that
@@ -135,15 +136,18 @@ while IFS= read -r dir; do
 		'NR>1 {printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$sequence_column,$repertoire_column,v_gene,j_gene,$junction_column,iedb_receptor_iri,iedb_epitope_iri, iedb_antigen_iri, iedb_organism_iri, iedb_hla_iri, iedb_hla_name, repository);}' $file >> $output_file
 
 	# Print out some reporting
+        echo "        Receptor info = $junction_aa $v_gene $j_gene"
+        echo "        Searching for $cdr3_aa"
 	echo "        Number of Rearrangements with match for $(basename $dir) = $line_count"
 	echo "        Number of Repertoires with match for $(basename $dir) = $repertoire_count"
 	echo "        Receptor genes = $v_gene, $j_gene"
 	echo "        Receptor IRI = $iedb_receptor_iri"
 	echo "        Epitope IRI = $iedb_epitope_iri"
-	echo "        Antigen info = $iedb_antigen_iri"
-	echo "        Organism info = $iedb_organism_iri"
-	echo "        HLA info = $iedb_hla_iri"
-	echo "        HLA name = $iedb_hla_name"
+	echo "        Antigen IRI = $iedb_antigen_iri"
+	echo "        Organism IRI = $iedb_organism_iri"
+	echo "        HLA IRI = $iedb_hla_iri"
+        echo "        HLA name = $iedb_hla_name"
+
 
 	# Keep track of the totals
 	total_repertoires=$((total_repertoires + repertoire_count))
