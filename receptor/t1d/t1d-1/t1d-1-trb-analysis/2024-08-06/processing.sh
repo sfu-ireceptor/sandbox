@@ -2,23 +2,15 @@
 nohup bash run-t1d-1.sh > t1d-1-2024-12-08.out
 
 # Annotate each sequence in the analysis with its epitope (TAKES A WHILE - HOURS)
-#nohup bash ../../../hits.sh hits-sequence-2025-02-15.tsv > hits-2025-02-15.out
-nohup bash $IR_SANDBOX/adc-search/hits-trb.sh hits-sequence-2025-10-02.tsv > hits-2025-10-02.out &
-head -1 hits-sequence-2025-07-03-header.tsv > hits-sequence-2025-10-02-header.tsv
-cat hits-sequence-2025-10-02.tsv >> hits-sequence-2025-10-02-header.tsv
-# Add header column names for MHC
-vi hits-sequence-2025-10-02-header.tsv
-# Rename for clarity - file format is type (trb), source epitope export date (2024-08-06),
-# run date (2025-10-02).
-mv hits-sequence-2025-10-02.tsv hits-sequence-trb-2024-08-06-2025-10-02.tsv
-mv hits-sequence-2025-10-02-header.tsv hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
-# Check files for consistency, reprocessing should not add any rows.
-wc -l hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
-# 621230 hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
-wc -l hits-sequence-2025-06-30-header.tsv
-# 621230 hits-sequence-2025-06-30-header.tsv
+nohup bash $IR_SANDBOX/adc-search/hits-trb.sh hits-sequence-trb-2024-08-06-2025-10-09.tsv > hits-trb-2024-08-06-2025-10-09.out
 
-
+head -1 hits-sequence-trb-header-2024-08-06-2025-10-02.tsv > hits-sequence-trb-header-2024-08-06-2025-10-09.tsv
+cat hits-sequence-trb-2024-08-06-2025-10-09.tsv >> hits-sequence-trb-header-2024-08-06-2025-10-09.tsv
+wc -l hits-sequence-trb-*2024*.tsv
+   621229 hits-sequence-trb-2024-08-06-2025-10-02.tsv
+   621229 hits-sequence-trb-2024-08-06-2025-10-09.tsv
+   621230 hits-sequence-trb-header-2024-08-06-2025-10-02.tsv
+   621230 hits-sequence-trb-header-2024-08-06-2025-10-09.tsv
 
 # Extract the unique receptors, epitopes, antigens, and organisms
 bash ../../../unique_extract.sh hits-sequence-2025-06-30.tsv 6 > receptors-2025-06-30.tsv
