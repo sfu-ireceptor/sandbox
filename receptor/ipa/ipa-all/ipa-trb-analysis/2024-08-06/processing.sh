@@ -1,3 +1,6 @@
+# Perform initial receptor mapping
+nohup bash run_ipa.sh > run_ipa-2025-01-14.out &
+
 # Peform the mapping from TRB search output to a per sequence hit list
 nohup bash $IR_SANDBOX/adc-search/hits-trb.sh hits-sequence-trb-2025-08-25-2025-10-18.tsv > hits-trb-2025-08-25-2025-10-18.out &
 
