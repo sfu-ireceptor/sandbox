@@ -1,0 +1,13 @@
+t1d-1:
+hits-sequence-tra-header-2025-07-11-2025-10-09.tsv
+hits-sequence-tra-header-2025-08-25-2025-10-09.tsv
+hits-sequence-trb-header-2024-08-06-2025-10-09.tsv
+hits-sequence-trb-header-2025-08-25-2025-10-09.tsv
+
+t1d-2:
+hits-sequence-trb-header-2024-08-06-2025-10-18.tsv
+hits-sequence-trb-header-2025-08-25-2025-10-18.tsv
+
+t1d-3:
+hits-sequence-trb-header-2024-08-06-2025-10-09.tsv
+hits-sequence-trb-header-2025-08-25-2025-10-09.tsv
